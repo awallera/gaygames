@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gay Games — Play Together 🌈</title>
+<meta name="description" content="The multiplayer gaming platform for the LGBTQ+ community. Play Slither and more with other gays online.">
+<meta property="og:title" content="Gay Games 🌈">
+<meta property="og:description" content="Multiplayer games for the culture. Play now at gaygames.ai">
+<meta property="og:image" content="https://gaygames.ai/og.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #F72585; --purple: #7B2FBE; --blue: #4361EE;
+  --cyan: #4CC9F0; --green: #06D6A0; --yellow: #FFD166;
+  --orange: #FF8C42; --red: #FF4B6E; --bg: #08000F;
+  --bg2: #0d0018; --card: rgba(255,255,255,0.04);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Background effects ── */
+.bg-orb {
+  position: fixed; border-radius: 50%; filter: blur(120px);
+  pointer-events: none; z-index: 0;
+}
+.bg-orb-1 { width:600px;height:600px;background:rgba(247,37,133,0.08);top:-200px;left:-200px; animation: orbFloat1 12s ease-in-out infinite; }
+.bg-orb-2 { width:500px;height:500px;background:rgba(67,97,238,0.08);bottom:-100px;right:-100px; animation: orbFloat2 15s ease-in-out infinite; }
+.bg-orb-3 { width:400px;height:400px;background:rgba(6,214,160,0.06);top:50%;left:50%;transform:translate(-50%,-50%); animation: orbFloat3 18s ease-in-out infinite; }
+@keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+@keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,-30px)} }
+@keyframes orbFloat3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-50%,-55%)} }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(8,0,15,0.7); backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nav-logo {
+  font-family: 'Fredoka One', cursive; font-size: 1.4rem;
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  letter-spacing: 0.03em;
+}
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.85rem;
+  font-weight: 700; letter-spacing: 0.05em; transition: color 0.2s;
+}
+.nav-links a:hover { color: white; }
+.nav-cta {
+  font-family: 'Fredoka One', cursive; font-size: 0.9rem;
+  padding: 9px 22px; border-radius: 50px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white !important; text-decoration: none;
+  box-shadow: 0 4px 20px rgba(247,37,133,0.35);
+  transition: all 0.2s !important;
+}
+.nav-cta:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(247,37,133,0.55) !important; color: white !important; }
+
+/* ── Hero ── */
+#hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 120px 24px 80px;
+  position: relative; z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(247,37,133,0.12); border: 1px solid rgba(247,37,133,0.3);
+  border-radius: 50px; padding: 6px 16px; font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--pink); margin-bottom: 28px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  line-height: 1; letter-spacing: 0.02em;
+  background: linear-gradient(135deg, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  background-size: 200% auto; animation: rainbowShift 4s linear infinite, fadeUp 0.6s 0.1s ease both;
+  filter: drop-shadow(0 0 40px rgba(247,37,133,0.3));
+  margin-bottom: 12px;
+}
+@keyframes rainbowShift { to { background-position: 200% center; } }
+
+.hero-sub-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  color: rgba(255,255,255,0.35); letter-spacing: 0.05em;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-desc {
+  max-width: 520px; font-size: 1.05rem; line-height: 1.7;
+  color: rgba(255,255,255,0.5); font-weight: 600;
+  margin-bottom: 40px;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+.hero-buttons {
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+
+.btn-primary {
+  font-family: 'Fredoka One', cursive; font-size: 1.15rem;
+  padding: 16px 42px; border-radius: 50px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white; text-decoration: none;
+  box-shadow: 0 6px 30px rgba(247,37,133,0.45);
+  transition: all 0.2s; display: inline-block; letter-spacing: 0.03em;
+}
+.btn-primary:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 10px 40px rgba(247,37,133,0.6); }
+
+.btn-secondary {
+  font-family: 'Fredoka One', cursive; font-size: 1.15rem;
+  padding: 16px 42px; border-radius: 50px; cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+  color: white; text-decoration: none; transition: all 0.2s;
+  display: inline-block; letter-spacing: 0.03em; backdrop-filter: blur(10px);
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+.hero-stats {
+  display: flex; gap: 48px; margin-top: 64px; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp 0.6s 0.5s ease both;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Fredoka One', cursive; font-size: 2rem;
+  background: linear-gradient(135deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.12em; margin-top: 2px; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Game preview ── */
+#preview {
+  position: relative; z-index: 1;
+  padding: 0 24px 100px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.section-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em;
+  color: var(--pink); margin-bottom: 16px; text-align: center;
+}
+
+.preview-wrap {
+  position: relative; width: 100%; max-width: 900px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple), var(--pink), var(--red));
+  background-size: 300% 300%; animation: rainbowBorder 5s linear infinite;
+  padding: 3px;
+  box-shadow: 0 0 60px rgba(247,37,133,0.2), 0 0 120px rgba(67,97,238,0.15);
+}
+@keyframes rainbowBorder { to { background-position: 300% 300%; } }
+
+.preview-inner {
+  background: var(--bg); border-radius: 18px; overflow: hidden;
+  aspect-ratio: 16/9; position: relative;
+}
+
+#gameCanvas { width: 100%; height: 100%; display: block; cursor: none; }
+
+.preview-overlay {
+  position: absolute; inset: 0;
+  background: rgba(8,0,15,0.88); backdrop-filter: blur(6px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; border-radius: 18px; transition: opacity 0.4s;
+}
+.preview-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.preview-title {
+  font-family: 'Fredoka One', cursive; font-size: clamp(1.2rem, 3vw, 2rem);
+  background: linear-gradient(90deg, var(--pink), var(--purple), var(--blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  letter-spacing: 0.05em;
+}
+.preview-sub { font-size: 0.8rem; color: rgba(255,255,255,0.35); font-weight: 700; }
+
+.preview-play-btn {
+  font-family: 'Fredoka One', cursive; font-size: 1rem;
+  padding: 12px 36px; border-radius: 50px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white; box-shadow: 0 4px 24px rgba(247,37,133,0.45);
+  transition: all 0.2s; letter-spacing: 0.05em;
+}
+.preview-play-btn:hover { transform: scale(1.06); box-shadow: 0 6px 32px rgba(247,37,133,0.65); }
+
+/* Game HUD overlay */
+.game-hud {
+  position: absolute; inset: 0; pointer-events: none;
+  padding: 12px 14px;
+}
+.game-hud-score {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  font-family: 'Fredoka One', cursive; font-size: 0.95rem;
+  background: rgba(0,0,0,0.5); padding: 4px 16px; border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.1); white-space: nowrap;
+}
+.game-hud-score span {
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.game-hud-lb {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 8px 12px; font-size: 0.65rem; font-weight: 700; min-width: 120px;
+}
+.game-hud-lb h4 {
+  font-family: 'Fredoka One', cursive; font-size: 0.7rem; margin-bottom: 5px;
+  background: linear-gradient(90deg, var(--yellow), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.lb-row { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; opacity: 0.7; font-size: 0.62rem; }
+
+/* ── Features ── */
+#features {
+  position: relative; z-index: 1;
+  padding: 80px 24px 100px;
+  max-width: 1100px; margin: 0 auto;
+}
+
+.features-heading {
+  text-align: center; font-family: 'Fredoka One', cursive;
+  font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 12px;
+  letter-spacing: 0.03em;
+}
+.features-heading span {
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.features-sub { text-align: center; color: rgba(255,255,255,0.4); font-size: 1rem; font-weight: 600; margin-bottom: 60px; }
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+}
+
+.feature-card {
+  background: var(--card); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px; padding: 32px 28px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.feature-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 20px; opacity: 0;
+  background: linear-gradient(135deg, rgba(247,37,133,0.08), rgba(67,97,238,0.08));
+  transition: opacity 0.3s;
+}
+.feature-card:hover { transform: translateY(-4px); border-color: rgba(247,37,133,0.25); }
+.feature-card:hover::before { opacity: 1; }
+.feature-icon { font-size: 2.2rem; margin-bottom: 16px; }
+.feature-title { font-family: 'Fredoka One', cursive; font-size: 1.2rem; margin-bottom: 10px; letter-spacing: 0.03em; }
+.feature-desc { color: rgba(255,255,255,0.45); font-size: 0.88rem; line-height: 1.65; font-weight: 600; }
+
+/* ── Waitlist ── */
+#waitlist {
+  position: relative; z-index: 1;
+  padding: 80px 24px 100px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+.waitlist-box {
+  background: var(--card); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px; padding: 60px 48px; max-width: 600px; width: 100%;
+  position: relative; overflow: hidden;
+}
+.waitlist-box::before {
+  content: ''; position: absolute; inset: 0; border-radius: 28px;
+  background: linear-gradient(135deg, rgba(247,37,133,0.06), rgba(67,97,238,0.06));
+  pointer-events: none;
+}
+.waitlist-emoji { font-size: 3.5rem; margin-bottom: 16px; animation: bounce 2s ease-in-out infinite alternate; }
+@keyframes bounce { from{transform:translateY(0) rotate(-5deg)} to{transform:translateY(-8px) rotate(5deg)} }
+.waitlist-title { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 10px; letter-spacing: 0.03em; }
+.waitlist-desc { color: rgba(255,255,255,0.45); font-size: 0.95rem; font-weight: 600; line-height: 1.6; margin-bottom: 32px; }
+
+.waitlist-form { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.waitlist-input {
+  font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 50px; padding: 13px 22px; color: white;
+  outline: none; width: 280px; transition: border-color 0.2s;
+}
+.waitlist-input:focus { border-color: var(--pink); }
+.waitlist-input::placeholder { opacity: 0.35; }
+.waitlist-btn {
+  font-family: 'Fredoka One', cursive; font-size: 0.95rem;
+  padding: 13px 28px; border-radius: 50px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: white; box-shadow: 0 4px 20px rgba(247,37,133,0.4); transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+.waitlist-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(247,37,133,0.6); }
+.waitlist-thanks { display: none; color: var(--green); font-family: 'Fredoka One', cursive; font-size: 1.1rem; }
+
+/* ── Footer ── */
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 40px 40px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-logo {
+  font-family: 'Fredoka One', cursive; font-size: 1.1rem;
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.footer-copy { color: rgba(255,255,255,0.2); font-size: 0.8rem; font-weight: 700; }
+.footer-flags { font-size: 1.2rem; display: flex; gap: 6px; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(247,37,133,0.3); border-radius: 3px; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  nav { padding: 14px 20px; }
+  .nav-links { display: none; }
+  .waitlist-box { padding: 40px 24px; }
+  .hero-stats { gap: 28px; }
+  footer { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">🌈 Gay Games</div>
+  <div class="nav-links">
+    <a href="#preview">Play</a>
+    <a href="#features">Features</a>
+    <a href="#waitlist">App</a>
+    <a href="#waitlist" class="nav-cta">Play Now ✨</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-badge">🎮 Now in Beta</div>
+  <h1 class="hero-title">GAY GAMES</h1>
+  <div class="hero-sub-title">Play Together. Slay Together.</div>
+  <p class="hero-desc">
+    The multiplayer gaming platform built for the LGBTQ+ community.
+    Compete, connect, and absolutely demolish your opponents. 🏳️‍🌈
+  </p>
+  <div class="hero-buttons">
+    <a href="#preview" class="btn-primary">✨ Play Now</a>
+    <a href="#waitlist" class="btn-secondary">📱 Get the App</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">GAY</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">VIBES</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">STRAIGHTS</div>
+    </div>
+  </div>
+</section>
+
+<!-- Game Preview -->
+<section id="preview">
+  <div class="section-label">SLITHER EDITION</div>
+  <div class="preview-wrap">
+    <div class="preview-inner">
+      <canvas id="gameCanvas"></canvas>
+      <div class="game-hud" id="gameHud" style="display:none">
+        <div class="game-hud-score">🐍 Length: <span id="lengthVal">8</span></div>
+        <div class="game-hud-lb">
+          <h4>🏆 TOP SNAKEYS</h4>
+          <div id="lbList"></div>
+        </div>
+      </div>
+      <div class="preview-overlay" id="previewOverlay">
+        <div style="font-size:3rem;animation:bounce 1s ease-in-out infinite alternate">🌈</div>
+        <div class="preview-title">SLITHER EDITION</div>
+        <div class="preview-sub">Eat. Grow. Slay. Repeat.</div>
+        <button class="preview-play-btn" id="previewPlayBtn">✨ PLAY DEMO</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <p class="section-label">WHY GAY GAMES</p>
+  <h2 class="features-heading">Built for <span>the culture</span></h2>
+  <p class="features-sub">Not an afterthought. Built from the ground up for us.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌈</div>
+      <div class="feature-title">Gay by Default</div>
+      <div class="feature-desc">No straight lobbies, no slurs, no nonsense. A space that's actually ours — not just tolerant of us.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <div class="feature-title">Real Multiplayer</div>
+      <div class="feature-desc">Live WebSocket gameplay. Real opponents, real-time. No bots pretending to be people.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">iOS App Coming</div>
+      <div class="feature-desc">Native mobile app in development. Sign up to be first on the waitlist when we launch.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✨</div>
+      <div class="feature-title">Pride Skins</div>
+      <div class="feature-desc">Rainbow snakes, pride flag color palettes, sparkles everywhere. Because why would you play it any other way.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💅</div>
+      <div class="feature-title">More Games Coming</div>
+      <div class="feature-desc">Slither is just the start. A whole arcade of multiplayer games built for the community is in the works.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-title">Global Leaderboards</div>
+      <div class="feature-desc">Compete for the top spot. Flex your length. Leave your name at the top of the board.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Waitlist -->
+<section id="waitlist">
+  <div class="waitlist-box">
+    <div class="waitlist-emoji">📱</div>
+    <div class="waitlist-title">iOS App — Coming Soon</div>
+    <div class="waitlist-desc">We're building the native app. Drop your email and you'll be the first to know when it drops — plus early access perks.</div>
+    <div class="waitlist-form">
+      <input class="waitlist-input" id="waitlistEmail" type="email" placeholder="your@email.com">
+      <button class="waitlist-btn" id="waitlistBtn">Notify Me 🌈</button>
+    </div>
+    <div class="waitlist-thanks" id="waitlistThanks">✨ You're on the list, bestie!</div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">🌈 Gay Games</div>
+  <div class="footer-copy">© 2025 gaygames.ai — Play Together. Slay Together.</div>
+  <div class="footer-flags">🏳️‍🌈🏳️‍⚧️🌈</div>
+</footer>
+
+<!-- Inline mini game -->
+<script>
+// ── Waitlist ──────────────────────────────────────────────────────────────
+document.getElementById('waitlistBtn').addEventListener('click', () => {
+  const email = document.getElementById('waitlistEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('waitlistEmail').style.borderColor = '#FF4B6E';
+    return;
+  }
+  document.querySelector('.waitlist-form').style.display = 'none';
+  document.getElementById('waitlistThanks').style.display = 'block';
+  // TODO: POST to your email collection endpoint
+  console.log('Waitlist signup:', email);
+});
+document.getElementById('waitlistEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('waitlistBtn').click();
+  document.getElementById('waitlistEmail').style.borderColor = '';
+});
+
+// ── Mini game ────────────────────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const WORLD = 3000, BOOST_MAX = 100;
+const SKINS = [
+  ['#F72585','#7B2FBE','#C77DFF'],['#FFD166','#FF4B6E','#FF8C42'],
+  ['#06D6A0','#4361EE','#4CC9F0'],['#4CC9F0','#F72585','#7B2FBE'],
+  ['#FF8C42','#06D6A0','#FFD166'],['#9B5DE5','#F72585','#4CC9F0'],
+  ['#FF4B6E','#FFD166','#06D6A0'],['#4361EE','#06D6A0','#F72585'],
+];
+const FC = ['#F72585','#FF8C42','#FFD166','#06D6A0','#4CC9F0','#7B2FBE','#C77DFF','#FF4B6E'];
+const BNAMES = ['GlitterBoy','RainbowSlay','FabSnake','QueenCobra','DiscoViper','SparkleWorm',
+  'DragSnake','PridePython','GayGator','LavenderLizard','CosmicCobra','NeonQueen',
+  'BisexualBoa','TransViper','LesbianSerpent','QueerCuda','PansexualPython','FierceAsp',
+  'GlitterPython','VelvetViper'];
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); });
+
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+const rand = (a,b) => a + Math.random()*(b-a);
+
+let mouse = {x: canvas.width/2, y: canvas.height/2};
+let boosting = false, cam = {x:0,y:0};
+let player = null, bots = [], foods = [], orbs = [];
+let running = false, animFrame = null, lastTime = 0;
+
+// Custom cursor for game
+const cursor = document.createElement('div');
+cursor.id = 'gameCursor';
+cursor.style.cssText = 'position:fixed;pointer-events:none;z-index:200;transform:translate(-50%,-50%);display:none;';
+document.body.appendChild(cursor);
+
+function updateCursor() {
+  if (!player || !running) return;
+  const b = player.boost / BOOST_MAX;
+  const boosting = player.boosting;
+  const size = boosting ? 26 : 20;
+  const rc = boosting ? '#FFD166' : '#F72585';
+  const r = size - 3;
+  const circ = Math.PI*2*r;
+  // cursor position updated on mousemove
+  
+  cursor.innerHTML = `<svg width="${size*2}" height="${size*2}" viewBox="0 0 ${size*2} ${size*2}" style="display:block;margin:-${size}px 0 0 -${size}px">
+    <circle cx="${size}" cy="${size}" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5" stroke-opacity="0.85"
+      stroke-dasharray="${circ}" stroke-dashoffset="${(1-b)*circ}"
+      stroke-linecap="round" transform="rotate(-90 ${size} ${size})"/>
+    <circle cx="${size}" cy="${size}" r="3.5" fill="${rc}" fill-opacity="0.9"/>
+    <line x1="${size}" y1="${size-8}" x2="${size}" y2="${size-13}" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+    <line x1="${size}" y1="${size+8}" x2="${size}" y2="${size+13}" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+    <line x1="${size-8}" y1="${size}" x2="${size-13}" y2="${size}" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+    <line x1="${size+8}" y1="${size}" x2="${size+13}" y2="${size}" stroke="white" stroke-width="1.5" stroke-opacity="0.5"/>
+  </svg>`;
+}
+
+class Snake {
+  constructor(x, y, name, skinIdx, isPlayer=false) {
+    this.name = name; this.skin = SKINS[skinIdx%SKINS.length]; this.isPlayer = isPlayer;
+    this.alive = true; this.angle = Math.random()*Math.PI*2; this.targetAngle = this.angle;
+    this.boost = BOOST_MAX; this.boosting = false; this.kills = 0;
+    this.segments = [];
+    const len = isPlayer ? 8 : (6 + Math.floor(Math.random()*20));
+    for (let i = 0; i < len; i++) this.segments.push({x: x-Math.cos(this.angle)*i*9, y: y-Math.sin(this.angle)*i*9});
+    this.botTimer = 0; this.botTargetAngle = this.angle;
+  }
+  get head() { return this.segments[0]; }
+  get length() { return this.segments.length; }
+  get radius() { return clamp(4 + this.length*0.06, 4, 14); }
+
+  update(dt, all) {
+    if (!this.alive) return;
+    if (this.isPlayer) {
+      const wx = cam.x + mouse.x, wy = cam.y + mouse.y;
+      this.targetAngle = Math.atan2(wy - this.head.y, wx - this.head.x);
+      this.boosting = boosting && this.boost > 0;
+    } else { this.updateBot(dt, all); }
+    let da = this.targetAngle - this.angle;
+    while (da > Math.PI) da -= Math.PI*2; while (da < -Math.PI) da += Math.PI*2;
+    this.angle += Math.sign(da) * Math.min(Math.abs(da), 0.09);
+    if (this.boosting && this.boost > 0) {
+      this.boost = Math.max(0, this.boost - dt*18);
+      if (this.boost <= 0) this.boosting = false;
+      if (this.length > 6 && Math.random() < 0.12) {
+        const t = this.segments.pop();
+        orbs.push({x:t.x, y:t.y, color:this.skin[0], r:this.radius*0.7, value:1});
+      }
+    } else { this.boost = Math.min(BOOST_MAX, this.boost + dt*6); }
+    const spd = (this.boosting ? 2.2*1.9 : 2.2) * dt;
+    const nx = clamp(this.head.x + Math.cos(this.angle)*spd, 10, WORLD-10);
+    const ny = clamp(this.head.y + Math.sin(this.angle)*spd, 10, WORLD-10);
+    if (nx<=10||nx>=WORLD-10||ny<=10||ny>=WORLD-10) { killSnake(this,'the void'); return; }
+    this.segments.unshift({x:nx,y:ny}); this.segments.pop();
+  }
+
+  updateBot(dt, all) {
+    this.botTimer -= dt;
+    if (this.botTimer > 0) { this.targetAngle = this.botTargetAngle; return; }
+    this.botTimer = 0.2 + Math.random()*0.35;
+    const h = this.head;
+    let bestF = null, bestFD = 280;
+    for (const f of foods) { const d=dist(h,f); if(d<bestFD){bestFD=d;bestF=f;} }
+    for (const o of orbs)  { const d=dist(h,o); if(d<bestFD*0.8){bestFD=d;bestF=o;} }
+    let threat=null,tD=250,prey=null,pD=350;
+    for (const s of all) {
+      if (s===this||!s.alive) continue;
+      const d = dist(h, s.head);
+      if (d<tD&&s.length>this.length*1.2) {threat=s;tD=d;}
+      if (d<pD&&s.length<this.length*0.8) {prey=s;pD=d;}
+    }
+    const margin=200, edge=h.x<margin||h.x>WORLD-margin||h.y<margin||h.y>WORLD-margin;
+    if (edge) { this.botTargetAngle=Math.atan2(WORLD/2-h.y,WORLD/2-h.x); this.boosting=false; }
+    else if (threat&&tD<180) { this.botTargetAngle=Math.atan2(h.y-threat.head.y,h.x-threat.head.x); this.boosting=this.boost>20; }
+    else if (prey&&pD<250)   { this.botTargetAngle=Math.atan2(prey.head.y-h.y,prey.head.x-h.x); this.boosting=pD<100&&this.boost>30; }
+    else if (bestF)           { this.botTargetAngle=Math.atan2(bestF.y-h.y,bestF.x-h.x); this.boosting=false; }
+    else { this.botTargetAngle += (Math.random()-0.5)*0.9; }
+    this.targetAngle = this.botTargetAngle;
+  }
+
+  draw() {
+    if (!this.alive) return;
+    const segs=this.segments, r=this.radius, skin=this.skin;
+    const vx1=cam.x-40,vy1=cam.y-40,vx2=cam.x+canvas.width+40,vy2=cam.y+canvas.height+40;
+    for (let i=segs.length-1;i>=0;i--) {
+      const s=segs[i];
+      if(s.x<vx1||s.x>vx2||s.y<vy1||s.y>vy2) continue;
+      const sx=s.x-cam.x, sy=s.y-cam.y;
+      const t=i/segs.length, sr=i===0?r*1.15:Math.max(r*0.5,r*(1-t*0.3));
+      ctx.fillStyle = skin[Math.floor(t*skin.length)%skin.length];
+      if (i===0) { ctx.shadowColor=skin[0]; ctx.shadowBlur=this.isPlayer?18:10; } else ctx.shadowBlur=0;
+      ctx.beginPath(); ctx.arc(sx,sy,Math.max(0.5,sr),0,Math.PI*2); ctx.fill();
+      if (i===0||i%4===0) {
+        ctx.fillStyle='rgba(255,255,255,0.18)';
+        ctx.beginPath(); ctx.arc(sx-sr*0.25,sy-sr*0.25,Math.max(0.3,sr*0.38),0,Math.PI*2); ctx.fill();
+      }
+    }
+    ctx.shadowBlur=0;
+    const hx=segs[0].x-cam.x, hy=segs[0].y-cam.y, a=this.angle;
+    const ex1=hx+Math.cos(a-0.5)*r*0.7, ey1=hy+Math.sin(a-0.5)*r*0.7;
+    const ex2=hx+Math.cos(a+0.5)*r*0.7, ey2=hy+Math.sin(a+0.5)*r*0.7;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(ex1,ey1,Math.max(0.5,r*0.32),0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ex2,ey2,Math.max(0.5,r*0.32),0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(ex1+Math.cos(a)*r*0.1,ey1+Math.sin(a)*r*0.1,Math.max(0.3,r*0.17),0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ex2+Math.cos(a)*r*0.1,ey2+Math.sin(a)*r*0.1,Math.max(0.3,r*0.17),0,Math.PI*2);ctx.fill();
+    if (r>4) {
+      const fs=Math.max(9,Math.min(13,r*1.1));
+      ctx.font=`bold ${fs}px Nunito,sans-serif`; ctx.textAlign='center';
+      ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText(this.name,hx+1,hy-r*1.65+1);
+      ctx.fillStyle=this.isPlayer?'#FFD166':'white'; ctx.fillText(this.name,hx,hy-r*1.65);
+    }
+  }
+  grow(v=1){const t=this.segments[this.segments.length-1];for(let i=0;i<v;i++)this.segments.push({...t});}
+}
+
+function killSnake(snake, killerName) {
+  if (!snake.alive) return;
+  snake.alive = false;
+  for (let i=0;i<snake.segments.length;i+=2) {
+    const s=snake.segments[i];
+    orbs.push({x:s.x+(Math.random()-.5)*10,y:s.y+(Math.random()-.5)*10,color:snake.skin[i%snake.skin.length],r:snake.radius*.9,value:1});
+  }
+  if (snake.isPlayer) {
+    running=false; cancelAnimationFrame(animFrame);
+    cursor.style.display='none';
+    setTimeout(()=>{
+      document.getElementById('previewOverlay').classList.remove('hidden');
+      document.getElementById('previewPlayBtn').textContent='💅 Play Again';
+      document.getElementById('gameHud').style.display='none';
+    }, 800);
+  }
+}
+
+function initGame() {
+  foods=[]; orbs=[];
+  for (let i=0;i<500;i++) foods.push({x:rand(50,WORLD-50),y:rand(50,WORLD-50),color:FC[Math.floor(Math.random()*FC.length)],r:rand(4,8),value:1,pulse:Math.random()*Math.PI*2});
+  const usedNames=new Set(); bots=[];
+  for (let i=0;i<20;i++) {
+    const avail=BNAMES.filter(n=>!usedNames.has(n));
+    const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[i%BNAMES.length];
+    usedNames.add(name);
+    const b=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,i%SKINS.length,false);
+    const extra=Math.floor(Math.random()*40);
+    const tail=b.segments[b.segments.length-1];
+    for(let j=0;j<extra;j++) b.segments.push({...tail});
+    bots.push(b);
+  }
+  player=new Snake(WORLD/2+(Math.random()-.5)*300,WORLD/2+(Math.random()-.5)*300,'SnakeQueen',0,true);
+  cam.x=player.head.x-canvas.width/2; cam.y=player.head.y-canvas.height/2;
+  mouse.x=canvas.width/2; mouse.y=canvas.height/2;
+  cursor.style.left=mouse.x+'px'; cursor.style.top=mouse.y+'px';
+  cursor.style.display='block';
+  running=true; lastTime=performance.now();
+  document.getElementById('gameHud').style.display='block';
+  animFrame=requestAnimationFrame(loop);
+}
+
+function loop(ts) {
+  if (!running) return;
+  const dt=Math.min((ts-lastTime)/1000*60,4); lastTime=ts;
+  update(dt); render(); updateHUD(); updateCursor();
+  animFrame=requestAnimationFrame(loop);
+}
+
+function update(dt) {
+  const all=[player,...bots].filter(s=>s&&s.alive);
+  for (const s of all) s.update(dt,all);
+  const toDelF=[];
+  for (const s of all) for(let i=foods.length-1;i>=0;i--) if(dist(s.head,foods[i])<s.radius+foods[i].r) { s.grow(foods[i].value); toDelF.push(i); }
+  const delF=new Set(toDelF); foods=foods.filter((_,i)=>!delF.has(i));
+  for(let i=0;i<delF.size;i++) foods.push({x:rand(50,WORLD-50),y:rand(50,WORLD-50),color:FC[Math.floor(Math.random()*FC.length)],r:rand(4,8),value:1,pulse:Math.random()*Math.PI*2});
+  for(const s of all) for(let i=orbs.length-1;i>=0;i--) if(orbs[i]&&dist(s.head,orbs[i])<s.radius+orbs[i].r+8){s.grow(orbs[i].value);orbs.splice(i,1);}
+  for(const f of foods) f.pulse+=dt*0.05;
+  const toKill=new Map();
+  for(const s of all){
+    if(toKill.has(s))continue;
+    for(const other of all){
+      if(other===s)continue;
+      for(let i=1;i<other.segments.length;i++) if(dist(s.head,other.segments[i])<s.radius+other.radius*0.8){if(!toKill.has(s))toKill.set(s,other.name);break;}
+      if(dist(s.head,other.head)<s.radius+other.radius){
+        if(s.length<=other.length&&!toKill.has(s))toKill.set(s,other.name);
+        if(other.length<=s.length&&!toKill.has(other))toKill.set(other,s.name);
+      }
+    }
+  }
+  for(const[s,k]of toKill)killSnake(s,k);
+  for(let i=0;i<bots.length;i++){
+    if(!bots[i].alive){
+      const avail=BNAMES.filter(n=>![...bots].some(b=>b.alive&&b.name===n));
+      const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[Math.floor(Math.random()*BNAMES.length)];
+      bots[i]=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,Math.floor(Math.random()*SKINS.length),false);
+    }
+  }
+  if(player&&player.alive){
+    const tx=player.head.x-canvas.width/2, ty=player.head.y-canvas.height/2;
+    cam.x+=(tx-cam.x)*0.12; cam.y+=(ty-cam.y)*0.12;
+  }
+}
+
+function render(){
+  ctx.fillStyle='#08000F'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(255,255,255,0.022)'; ctx.lineWidth=1;
+  for(let x=-(cam.x%80);x<canvas.width;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=-(cam.y%80);y<canvas.height;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(247,37,133,0.4)'; ctx.lineWidth=4;
+  ctx.strokeRect(-cam.x,-cam.y,WORLD,WORLD);
+  const vx1=cam.x-20,vy1=cam.y-20,vx2=cam.x+canvas.width+20,vy2=cam.y+canvas.height+20;
+  for(const f of foods){
+    if(f.x<vx1||f.x>vx2||f.y<vy1||f.y>vy2)continue;
+    const fx=f.x-cam.x,fy=f.y-cam.y,pr=f.r*(0.85+0.15*Math.sin(f.pulse));
+    ctx.save();ctx.shadowColor=f.color;ctx.shadowBlur=6;ctx.fillStyle=f.color;
+    ctx.beginPath();ctx.arc(fx,fy,Math.max(0.5,pr),0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.beginPath();ctx.arc(fx-pr*0.2,fy-pr*0.2,Math.max(0.3,pr*0.3),0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+  for(const o of orbs){
+    if(o.x<vx1||o.x>vx2||o.y<vy1||o.y>vy2)continue;
+    const ox=o.x-cam.x,oy=o.y-cam.y;
+    ctx.save();ctx.shadowColor=o.color;ctx.shadowBlur=12;ctx.fillStyle=o.color;
+    ctx.beginPath();ctx.arc(ox,oy,Math.max(0.5,o.r),0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  for(const b of bots)b.draw();
+  if(player)player.draw();
+}
+
+function updateHUD(){
+  if(!player)return;
+  document.getElementById('lengthVal').textContent=player.alive?player.length:0;
+  const all=[player,...bots].filter(s=>s.alive).sort((a,b)=>b.length-a.length);
+  document.getElementById('lbList').innerHTML=all.slice(0,5).map((s,i)=>{
+    const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    return`<div class="lb-row" style="${s.isPlayer?'color:#FFD166':''}">${m} ${s.name}<span style="font-family:'Fredoka One',cursive">${s.length}</span></div>`;
+  }).join('');
+}
+
+// Controls — only when game area is focused
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=e.clientX-rect.left;
+  mouse.y=e.clientY-rect.top;
+  cursor.style.left=e.clientX+'px';
+  cursor.style.top=e.clientY+'px';
+});
+canvas.addEventListener('mousedown',e=>{if(running){boosting=true;e.preventDefault();}});
+canvas.addEventListener('mouseup',()=>boosting=false);
+canvas.addEventListener('touchmove',e=>{if(running){e.preventDefault();const rect=canvas.getBoundingClientRect();mouse.x=e.touches[0].clientX-rect.left;mouse.y=e.touches[0].clientY-rect.top;}},{passive:false});
+canvas.addEventListener('touchstart',e=>{if(running){boosting=true;const rect=canvas.getBoundingClientRect();mouse.x=e.touches[0].clientX-rect.left;mouse.y=e.touches[0].clientY-rect.top;}});
+canvas.addEventListener('touchend',()=>boosting=false);
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&running){boosting=true;e.preventDefault();}});
+document.addEventListener('keyup',e=>{if(e.code==='Space')boosting=false;});
+
+document.getElementById('previewPlayBtn').addEventListener('click',()=>{
+  document.getElementById('previewOverlay').classList.add('hidden');
+  resizeCanvas();
+  initGame();
+});
+</script>
+</body>
+</html>
