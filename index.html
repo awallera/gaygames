@@ -2,546 +2,727 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Gay Games — Play Together 🌈</title>
-<meta name="description" content="The multiplayer gaming platform for the LGBTQ+ community. Play Slither and more with other gays online.">
-<meta property="og:title" content="Gay Games 🌈">
-<meta property="og:description" content="Multiplayer games for the culture. Play now at gaygames.ai">
-<meta property="og:image" content="https://gaygames.ai/og.png">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌈</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🌈 GAY GAMES — Slither</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@500;700;900&display=swap');
+
 :root {
   --pink: #F72585; --purple: #7B2FBE; --blue: #4361EE;
   --cyan: #4CC9F0; --green: #06D6A0; --yellow: #FFD166;
   --orange: #FF8C42; --red: #FF4B6E; --bg: #08000F;
-  --bg2: #0d0018; --card: rgba(255,255,255,0.04);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior: smooth; }
+body { background:var(--bg); overflow:hidden; font-family:'Nunito',sans-serif; color:white; width:100vw; height:100vh; cursor:none;
+  /* Prevent iOS rubber-band scrolling */
+  position:fixed; overscroll-behavior:none; -webkit-overflow-scrolling:touch; }
 
-body {
-  background: var(--bg);
-  color: white;
-  font-family: 'Nunito', sans-serif;
-  overflow-x: hidden;
-}
+/* Safe area for iPhone notch + home bar */
+#hud { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+#boost-bar-wrap { bottom: calc(30px + env(safe-area-inset-bottom, 0px)); }
+#controls-hint { bottom: calc(30px + env(safe-area-inset-bottom, 0px)); }
+#kill-feed { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 
-/* ── Background effects ── */
-.bg-orb {
-  position: fixed; border-radius: 50%; filter: blur(120px);
-  pointer-events: none; z-index: 0;
+/* Virtual joystick */
+#joystick-wrap {
+  position: fixed; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); left: 40px;
+  z-index: 15; pointer-events: all; display: none;
 }
-.bg-orb-1 { width:600px;height:600px;background:rgba(247,37,133,0.08);top:-200px;left:-200px; animation: orbFloat1 12s ease-in-out infinite; }
-.bg-orb-2 { width:500px;height:500px;background:rgba(67,97,238,0.08);bottom:-100px;right:-100px; animation: orbFloat2 15s ease-in-out infinite; }
-.bg-orb-3 { width:400px;height:400px;background:rgba(6,214,160,0.06);top:50%;left:50%;transform:translate(-50%,-50%); animation: orbFloat3 18s ease-in-out infinite; }
-@keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
-@keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,-30px)} }
-@keyframes orbFloat3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-50%,-55%)} }
-
-/* ── Nav ── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 40px;
-  background: rgba(8,0,15,0.7); backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+#joystick-base {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15);
+  position: relative; backdrop-filter: blur(4px);
 }
-.nav-logo {
-  font-family: 'Fredoka One', cursive; font-size: 1.4rem;
-  background: linear-gradient(90deg, var(--pink), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  letter-spacing: 0.03em;
-}
-.nav-links { display: flex; gap: 32px; align-items: center; }
-.nav-links a {
-  color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.85rem;
-  font-weight: 700; letter-spacing: 0.05em; transition: color 0.2s;
-}
-.nav-links a:hover { color: white; }
-.nav-cta {
-  font-family: 'Fredoka One', cursive; font-size: 0.9rem;
-  padding: 9px 22px; border-radius: 50px;
+#joystick-knob {
+  width: 44px; height: 44px; border-radius: 50%;
   background: linear-gradient(135deg, var(--pink), var(--purple));
-  color: white !important; text-decoration: none;
-  box-shadow: 0 4px 20px rgba(247,37,133,0.35);
-  transition: all 0.2s !important;
+  box-shadow: 0 0 16px rgba(247,37,133,0.5);
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  transition: none;
 }
-.nav-cta:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(247,37,133,0.55) !important; color: white !important; }
-
-/* ── Hero ── */
-#hero {
-  min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 120px 24px 80px;
-  position: relative; z-index: 1;
-}
-
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(247,37,133,0.12); border: 1px solid rgba(247,37,133,0.3);
-  border-radius: 50px; padding: 6px 16px; font-size: 0.8rem; font-weight: 700;
-  letter-spacing: 0.08em; color: var(--pink); margin-bottom: 28px;
-  animation: fadeUp 0.6s ease both;
-}
-
-.hero-title {
-  font-family: 'Fredoka One', cursive;
-  font-size: clamp(3.5rem, 10vw, 7rem);
-  line-height: 1; letter-spacing: 0.02em;
-  background: linear-gradient(135deg, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple), var(--pink));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  background-size: 200% auto; animation: rainbowShift 4s linear infinite, fadeUp 0.6s 0.1s ease both;
-  filter: drop-shadow(0 0 40px rgba(247,37,133,0.3));
-  margin-bottom: 12px;
-}
-@keyframes rainbowShift { to { background-position: 200% center; } }
-
-.hero-sub-title {
-  font-family: 'Fredoka One', cursive;
-  font-size: clamp(1.2rem, 3vw, 2rem);
-  color: rgba(255,255,255,0.35); letter-spacing: 0.05em;
-  margin-bottom: 24px;
-  animation: fadeUp 0.6s 0.2s ease both;
-}
-
-.hero-desc {
-  max-width: 520px; font-size: 1.05rem; line-height: 1.7;
-  color: rgba(255,255,255,0.5); font-weight: 600;
-  margin-bottom: 40px;
-  animation: fadeUp 0.6s 0.3s ease both;
-}
-
-.hero-buttons {
-  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-  animation: fadeUp 0.6s 0.4s ease both;
-}
-
-.btn-primary {
-  font-family: 'Fredoka One', cursive; font-size: 1.15rem;
-  padding: 16px 42px; border-radius: 50px; border: none; cursor: pointer;
+#boost-btn {
+  position: fixed; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); right: 40px;
+  width: 80px; height: 80px; border-radius: 50%; z-index: 15; pointer-events: all;
   background: linear-gradient(135deg, var(--pink), var(--purple));
-  color: white; text-decoration: none;
-  box-shadow: 0 6px 30px rgba(247,37,133,0.45);
-  transition: all 0.2s; display: inline-block; letter-spacing: 0.03em;
+  border: none; cursor: pointer; display: none;
+  font-family: 'Fredoka One', cursive; font-size: 0.8rem; color: white;
+  box-shadow: 0 4px 20px rgba(247,37,133,0.5); letter-spacing: 0.05em;
+  align-items: center; justify-content: center; flex-direction: column; gap: 2px;
 }
-.btn-primary:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 10px 40px rgba(247,37,133,0.6); }
+#boost-btn span { font-size: 1.2rem; }
 
-.btn-secondary {
-  font-family: 'Fredoka One', cursive; font-size: 1.15rem;
-  padding: 16px 42px; border-radius: 50px; cursor: pointer;
-  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
-  color: white; text-decoration: none; transition: all 0.2s;
-  display: inline-block; letter-spacing: 0.03em; backdrop-filter: blur(10px);
+/* On mobile, shrink leaderboard and score */
+@media (max-width: 480px) {
+  #leaderboard { min-width: 140px; padding: 10px 12px; font-size: 0.7rem; top: calc(14px + env(safe-area-inset-top, 0px)); right: 10px; }
+  #leaderboard h3 { font-size: 0.8rem; }
+  #score-display { font-size: 1rem; top: calc(14px + env(safe-area-inset-top, 0px)); }
+  #boost-bar-wrap { display: none; } /* hidden on mobile — boost btn replaces it */
+  #controls-hint { display: none; }
 }
-.btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+#gameCanvas { display:block; cursor:none; }
 
-.hero-stats {
-  display: flex; gap: 48px; margin-top: 64px; flex-wrap: wrap; justify-content: center;
-  animation: fadeUp 0.6s 0.5s ease both;
+/* HUD */
+#hud { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:10; }
+#score-display {
+  position:absolute; top:20px; left:50%; transform:translateX(-50%);
+  font-family:'Fredoka One',cursive; font-size:1.4rem;
+  background:rgba(0,0,0,0.5); padding:8px 24px; border-radius:50px;
+  border:2px solid rgba(255,255,255,0.15); backdrop-filter:blur(10px);
 }
-.stat { text-align: center; }
-.stat-num {
-  font-family: 'Fredoka One', cursive; font-size: 2rem;
-  background: linear-gradient(135deg, var(--pink), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+#score-display span { background:linear-gradient(90deg,var(--pink),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+#leaderboard {
+  position:absolute; top:20px; right:20px;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1); border-radius:16px;
+  padding:14px 18px; min-width:190px; font-size:0.8rem; font-weight:700;
 }
-.stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.35); font-weight: 700; letter-spacing: 0.12em; margin-top: 2px; }
+#leaderboard h3 { font-family:'Fredoka One',cursive; font-size:1rem; margin-bottom:10px; letter-spacing:0.05em; background:linear-gradient(90deg,var(--yellow),var(--orange)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.lb-entry { display:flex; justify-content:space-between; gap:12px; margin:4px 0; }
+#ping-display { position:absolute; top:20px; left:20px; font-size:0.7rem; opacity:0.4; font-weight:700; }
+#boost-bar-wrap { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); text-align:center; }
+#boost-label { font-size:0.65rem; letter-spacing:0.15em; opacity:0.5; margin-bottom:5px; }
+#boost-bar-bg { width:160px; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; }
+#boost-bar { height:100%; width:100%; background:linear-gradient(90deg,var(--pink),var(--yellow)); border-radius:4px; transition:width 0.1s; box-shadow:0 0 8px rgba(247,37,133,0.6); }
+#controls-hint { position:absolute; bottom:30px; right:20px; font-size:0.65rem; opacity:0.3; letter-spacing:0.08em; line-height:2; text-align:right; }
+#minimap-wrap { position:absolute; bottom:22px; left:14px; pointer-events:none; z-index:15; }
+#minimap { border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.6); display:block; }
+#minimap-label { font-size:0.55rem; opacity:0.35; text-align:center; margin-top:2px; letter-spacing:0.1em; font-weight:700; }
+#kill-feed { position:absolute; bottom:80px; left:20px; font-size:0.75rem; font-weight:700; }
+.kill-msg { background:rgba(0,0,0,0.5); padding:4px 12px; border-radius:20px; margin-top:4px; animation:fadeKill 3s forwards; border-left:3px solid var(--pink); }
+@keyframes fadeKill { 0%,70%{opacity:1} 100%{opacity:0} }
 
-@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
-/* ── Game preview ── */
-#preview {
-  position: relative; z-index: 1;
-  padding: 0 24px 100px;
-  display: flex; flex-direction: column; align-items: center;
+/* Screens */
+#start-screen, #dead-screen, #connecting-screen {
+  position:fixed; inset:0; z-index:20; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:rgba(8,0,15,0.95); backdrop-filter:blur(8px); gap:16px;
 }
-
-.section-label {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em;
-  color: var(--pink); margin-bottom: 16px; text-align: center;
+#dead-screen, #connecting-screen { display:none; }
+.screen-title {
+  font-family:'Fredoka One',cursive; font-size:clamp(2.5rem,8vw,5rem); letter-spacing:0.05em;
+  background:linear-gradient(135deg,var(--red),var(--orange),var(--yellow),var(--green),var(--blue),var(--purple),var(--pink));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  background-size:200% auto; animation:rainbowShift 3s linear infinite;
+  filter:drop-shadow(0 0 30px rgba(247,37,133,0.4));
 }
-
-.preview-wrap {
-  position: relative; width: 100%; max-width: 900px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple), var(--pink), var(--red));
-  background-size: 300% 300%; animation: rainbowBorder 5s linear infinite;
-  padding: 3px;
-  box-shadow: 0 0 60px rgba(247,37,133,0.2), 0 0 120px rgba(67,97,238,0.15);
+@keyframes rainbowShift { to { background-position:200% center; } }
+.screen-sub { font-size:1rem; opacity:0.5; letter-spacing:0.05em; }
+.name-input {
+  font-family:'Fredoka One',cursive; font-size:1.1rem;
+  background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.2);
+  border-radius:50px; padding:12px 28px; color:white;
+  outline:none; text-align:center; width:280px; transition:border-color 0.2s;
 }
-@keyframes rainbowBorder { to { background-position: 300% 300%; } }
-
-.preview-inner {
-  background: var(--bg); border-radius: 18px; overflow: hidden;
-  aspect-ratio: 16/9; position: relative;
+.name-input:focus { border-color:var(--pink); }
+.name-input::placeholder { opacity:0.3; }
+.play-btn {
+  font-family:'Fredoka One',cursive; font-size:1.2rem; padding:14px 50px;
+  border:none; cursor:pointer; border-radius:50px;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:white; box-shadow:0 4px 30px rgba(247,37,133,0.5); transition:all 0.2s; letter-spacing:0.05em;
+  pointer-events:all;
 }
-
-#gameCanvas { width: 100%; height: 100%; display: block; cursor: none; }
-
-.preview-overlay {
-  position: absolute; inset: 0;
-  background: rgba(8,0,15,0.88); backdrop-filter: blur(6px);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 16px; border-radius: 18px; transition: opacity 0.4s;
-}
-.preview-overlay.hidden { opacity: 0; pointer-events: none; }
-
-.preview-title {
-  font-family: 'Fredoka One', cursive; font-size: clamp(1.2rem, 3vw, 2rem);
-  background: linear-gradient(90deg, var(--pink), var(--purple), var(--blue));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  letter-spacing: 0.05em;
-}
-.preview-sub { font-size: 0.8rem; color: rgba(255,255,255,0.35); font-weight: 700; }
-
-.preview-play-btn {
-  font-family: 'Fredoka One', cursive; font-size: 1rem;
-  padding: 12px 36px; border-radius: 50px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, var(--pink), var(--purple));
-  color: white; box-shadow: 0 4px 24px rgba(247,37,133,0.45);
-  transition: all 0.2s; letter-spacing: 0.05em;
-}
-.preview-play-btn:hover { transform: scale(1.06); box-shadow: 0 6px 32px rgba(247,37,133,0.65); }
-
-/* Game HUD overlay */
-.game-hud {
-  position: absolute; inset: 0; pointer-events: none;
-  padding: 12px 14px;
-}
-.game-hud-score {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  font-family: 'Fredoka One', cursive; font-size: 0.95rem;
-  background: rgba(0,0,0,0.5); padding: 4px 16px; border-radius: 50px;
-  border: 1px solid rgba(255,255,255,0.1); white-space: nowrap;
-}
-.game-hud-score span {
-  background: linear-gradient(90deg, var(--pink), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.game-hud-lb {
-  position: absolute; top: 12px; right: 12px;
-  background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 8px 12px; font-size: 0.65rem; font-weight: 700; min-width: 120px;
-}
-.game-hud-lb h4 {
-  font-family: 'Fredoka One', cursive; font-size: 0.7rem; margin-bottom: 5px;
-  background: linear-gradient(90deg, var(--yellow), var(--orange));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.lb-row { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; opacity: 0.7; font-size: 0.62rem; }
-
-/* ── Features ── */
-#features {
-  position: relative; z-index: 1;
-  padding: 80px 24px 100px;
-  max-width: 1100px; margin: 0 auto;
-}
-
-.features-heading {
-  text-align: center; font-family: 'Fredoka One', cursive;
-  font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 12px;
-  letter-spacing: 0.03em;
-}
-.features-heading span {
-  background: linear-gradient(90deg, var(--pink), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.features-sub { text-align: center; color: rgba(255,255,255,0.4); font-size: 1rem; font-weight: 600; margin-bottom: 60px; }
-
-.features-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
-}
-
-.feature-card {
-  background: var(--card); border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 20px; padding: 32px 28px;
-  transition: all 0.3s; position: relative; overflow: hidden;
-}
-.feature-card::before {
-  content: ''; position: absolute; inset: 0; border-radius: 20px; opacity: 0;
-  background: linear-gradient(135deg, rgba(247,37,133,0.08), rgba(67,97,238,0.08));
-  transition: opacity 0.3s;
-}
-.feature-card:hover { transform: translateY(-4px); border-color: rgba(247,37,133,0.25); }
-.feature-card:hover::before { opacity: 1; }
-.feature-icon { font-size: 2.2rem; margin-bottom: 16px; }
-.feature-title { font-family: 'Fredoka One', cursive; font-size: 1.2rem; margin-bottom: 10px; letter-spacing: 0.03em; }
-.feature-desc { color: rgba(255,255,255,0.45); font-size: 0.88rem; line-height: 1.65; font-weight: 600; }
-
-/* ── Waitlist ── */
-#waitlist {
-  position: relative; z-index: 1;
-  padding: 80px 24px 100px;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-
-.waitlist-box {
-  background: var(--card); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 28px; padding: 60px 48px; max-width: 600px; width: 100%;
-  position: relative; overflow: hidden;
-}
-.waitlist-box::before {
-  content: ''; position: absolute; inset: 0; border-radius: 28px;
-  background: linear-gradient(135deg, rgba(247,37,133,0.06), rgba(67,97,238,0.06));
-  pointer-events: none;
-}
-.waitlist-emoji { font-size: 3.5rem; margin-bottom: 16px; animation: bounce 2s ease-in-out infinite alternate; }
-@keyframes bounce { from{transform:translateY(0) rotate(-5deg)} to{transform:translateY(-8px) rotate(5deg)} }
-.waitlist-title { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 10px; letter-spacing: 0.03em; }
-.waitlist-desc { color: rgba(255,255,255,0.45); font-size: 0.95rem; font-weight: 600; line-height: 1.6; margin-bottom: 32px; }
-
-.waitlist-form { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.waitlist-input {
-  font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600;
-  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
-  border-radius: 50px; padding: 13px 22px; color: white;
-  outline: none; width: 280px; transition: border-color 0.2s;
-}
-.waitlist-input:focus { border-color: var(--pink); }
-.waitlist-input::placeholder { opacity: 0.35; }
-.waitlist-btn {
-  font-family: 'Fredoka One', cursive; font-size: 0.95rem;
-  padding: 13px 28px; border-radius: 50px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, var(--pink), var(--purple));
-  color: white; box-shadow: 0 4px 20px rgba(247,37,133,0.4); transition: all 0.2s;
-  letter-spacing: 0.03em;
-}
-.waitlist-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(247,37,133,0.6); }
-.waitlist-thanks { display: none; color: var(--green); font-family: 'Fredoka One', cursive; font-size: 1.1rem; }
-
-/* ── Footer ── */
-footer {
-  position: relative; z-index: 1;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding: 40px 40px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
-}
-.footer-logo {
-  font-family: 'Fredoka One', cursive; font-size: 1.1rem;
-  background: linear-gradient(90deg, var(--pink), var(--cyan));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.footer-copy { color: rgba(255,255,255,0.2); font-size: 0.8rem; font-weight: 700; }
-.footer-flags { font-size: 1.2rem; display: flex; gap: 6px; }
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: rgba(247,37,133,0.3); border-radius: 3px; }
-
-/* ── Responsive ── */
-@media (max-width: 600px) {
-  nav { padding: 14px 20px; }
-  .nav-links { display: none; }
-  .waitlist-box { padding: 40px 24px; }
-  .hero-stats { gap: 28px; }
-  footer { flex-direction: column; text-align: center; }
-}
+.play-btn:hover { transform:scale(1.05); box-shadow:0 6px 40px rgba(247,37,133,0.7); }
+.play-btn:active { transform:scale(0.97); }
+.dead-stats { font-size:1rem; opacity:0.6; text-align:center; line-height:2.2; }
+.dead-stats b { color:white; font-family:'Fredoka One',cursive; font-size:1.4rem; }
+.skin-picker { display:flex; gap:10px; align-items:center; }
+.skin-picker label { font-size:0.7rem; letter-spacing:0.1em; opacity:0.5; }
+.skin-dot { width:28px; height:28px; border-radius:50%; cursor:pointer; border:3px solid transparent; transition:all 0.15s; pointer-events:all; }
+.skin-dot:hover, .skin-dot.selected { border-color:white; transform:scale(1.2); }
+#connecting-screen .spinner { font-size:3rem; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+#player-count { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); font-size:0.7rem; opacity:0.3; font-weight:700; letter-spacing:0.1em; }
 </style>
 </head>
 <body>
+<canvas id="gameCanvas"></canvas>
+<div id="joystick-wrap">
+  <div id="joystick-base"><div id="joystick-knob"></div></div>
+</div>
+<button id="boost-btn"><span>⚡</span>BOOST</button>
 
-<div class="bg-orb bg-orb-1"></div>
-<div class="bg-orb bg-orb-2"></div>
-<div class="bg-orb bg-orb-3"></div>
-
-<!-- Nav -->
-<nav>
-  <div class="nav-logo">🌈 Gay Games</div>
-  <div class="nav-links">
-    <a href="https://play.gaygames.ai/" target="_blank">Play</a>
-    <a href="#features">Features</a>
-    <a href="#waitlist">App</a>
-    <a href="https://play.gaygames.ai/" target="_blank" class="nav-cta">Play Now ✨</a>
+<div id="hud">
+  <div id="ping-display">● <span id="pingVal">--</span>ms</div>
+  <div id="score-display">🐍 Length: <span id="lengthVal">3</span></div>
+  <div id="leaderboard"><h3>🏆 TOP SNAKEYS</h3><div id="lb-list"></div></div>
+  <div id="boost-bar-wrap">
+    <div id="boost-label">HOLD CLICK/SPACE TO BOOST ⚡ (costs length)</div>
   </div>
-</nav>
+  <div id="controls-hint">MOUSE / WASD / ARROWS — steer<br>CLICK / SPACE — boost</div>
+  <div id="kill-feed"></div>
+  <div id="minimap-wrap"><canvas id="minimap" width="120" height="120"></canvas><div id="minimap-label">MAP</div></div>
+</div>
 
-<!-- Hero -->
-<section id="hero">
-  <div class="hero-badge">🎮 Now in Beta</div>
-  <h1 class="hero-title">GAY GAMES</h1>
-  <div class="hero-sub-title">Play Together. Slay Together.</div>
-  <p class="hero-desc">
-    The multiplayer gaming platform built for the LGBTQ+ community.
-    Compete, connect, and absolutely demolish your opponents. 🏳️‍🌈
-  </p>
-  <div class="hero-buttons">
-    <a href="https://play.gaygames.ai/" target="_blank" class="btn-primary">✨ Play Now</a>
-    <a href="#waitlist" class="btn-secondary">📱 Get the App</a>
+<div id="start-screen">
+  <div class="screen-title">🌈 GAY GAMES</div>
+  <div class="screen-sub">SLITHER EDITION ✨</div>
+  <input class="name-input" id="nameInput" placeholder="your gay name..." maxlength="16" value="SnakeQueen">
+  <div class="skin-picker">
+    <label>SKIN</label>
+    <div class="skin-dot selected" data-skin="0" style="background:linear-gradient(135deg,#F72585,#7B2FBE)"></div>
+    <div class="skin-dot" data-skin="1" style="background:linear-gradient(135deg,#FFD166,#FF4B6E)"></div>
+    <div class="skin-dot" data-skin="2" style="background:linear-gradient(135deg,#06D6A0,#4361EE)"></div>
+    <div class="skin-dot" data-skin="3" style="background:linear-gradient(135deg,#4CC9F0,#F72585)"></div>
+    <div class="skin-dot" data-skin="4" style="background:linear-gradient(135deg,#FF8C42,#06D6A0)"></div>
   </div>
-  <div class="hero-stats">
-    <div class="stat">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">GAY</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">∞</div>
-      <div class="stat-label">VIBES</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">0</div>
-      <div class="stat-label">STRAIGHTS</div>
-    </div>
+  <button class="play-btn" id="startBtn">✨ SLAY ✨</button>
+  <div id="player-count">🌍 <span id="onlineCount">...</span> players online</div>
+</div>
+
+<div id="connecting-screen">
+  <div class="spinner">🌈</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:1.5rem;opacity:0.7">Connecting...</div>
+</div>
+
+<div id="dead-screen">
+  <div style="font-family:'Fredoka One',cursive;font-size:3rem;background:linear-gradient(90deg,var(--red),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">💀 YOU DIED BESTIE</div>
+  <div class="dead-stats">
+    Final length: <b id="finalLen">0</b><br>
+    Score: <b id="finalScore">0</b><br>
+    Kills: <b id="finalKills">0</b><br>
+    Killed by: <b id="killedBy">the void</b><br>
+    Rank: <b id="finalRank">#?</b>
   </div>
-</section>
+  <button class="play-btn" id="restartBtn">💅 PLAY AGAIN 💅</button>
+</div>
 
-<!-- Game Preview -->
-<section id="preview">
-  <div class="section-label">SLITHER EDITION</div>
-  <div class="preview-wrap">
-    <div class="preview-inner">
-      <canvas id="gameCanvas"></canvas>
-      <div class="game-hud" id="gameHud" style="display:none">
-        <div class="game-hud-score">🐍 Length: <span id="lengthVal">8</span></div>
-        <div class="game-hud-lb">
-          <h4>🏆 TOP SNAKEYS</h4>
-          <div id="lbList"></div>
-        </div>
-      </div>
-      <div class="preview-overlay" id="previewOverlay">
-        <div style="font-size:3rem;animation:bounce 1s ease-in-out infinite alternate">🌈</div>
-        <div class="preview-title">SLITHER EDITION</div>
-        <div class="preview-sub">Eat. Grow. Slay. Repeat.</div>
-        <button class="preview-play-btn" id="previewPlayBtn">✨ PLAY DEMO</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Features -->
-<section id="features">
-  <p class="section-label">WHY GAY GAMES</p>
-  <h2 class="features-heading">Built for <span>the culture</span></h2>
-  <p class="features-sub">Not an afterthought. Built from the ground up for us.</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">🌈</div>
-      <div class="feature-title">Gay by Default</div>
-      <div class="feature-desc">No straight lobbies, no slurs, no nonsense. A space that's actually ours — not just tolerant of us.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎮</div>
-      <div class="feature-title">Real Multiplayer</div>
-      <div class="feature-desc">Live WebSocket gameplay. Real opponents, real-time. No bots pretending to be people.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📱</div>
-      <div class="feature-title">iOS App Coming</div>
-      <div class="feature-desc">Native mobile app in development. Sign up to be first on the waitlist when we launch.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">✨</div>
-      <div class="feature-title">Pride Skins</div>
-      <div class="feature-desc">Rainbow snakes, pride flag color palettes, sparkles everywhere. Because why would you play it any other way.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💅</div>
-      <div class="feature-title">More Games Coming</div>
-      <div class="feature-desc">Slither is just the start. A whole arcade of multiplayer games built for the community is in the works.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🏆</div>
-      <div class="feature-title">Global Leaderboards</div>
-      <div class="feature-desc">Compete for the top spot. Flex your length. Leave your name at the top of the board.</div>
-    </div>
-  </div>
-</section>
-
-<!-- Waitlist -->
-<section id="waitlist">
-  <div class="waitlist-box">
-    <div class="waitlist-emoji">📱</div>
-    <div class="waitlist-title">iOS App — Coming Soon</div>
-    <div class="waitlist-desc">We're building the native app. Drop your email and you'll be the first to know when it drops — plus early access perks.</div>
-    <div class="waitlist-form">
-      <input class="waitlist-input" id="waitlistEmail" type="email" placeholder="your@email.com">
-      <button class="waitlist-btn" id="waitlistBtn">Notify Me 🌈</button>
-    </div>
-    <div class="waitlist-thanks" id="waitlistThanks">✨ You're on the list, bestie!</div>
-  </div>
-</section>
-
-<!-- Footer -->
-<footer>
-  <div class="footer-logo">🌈 Gay Games</div>
-  <div class="footer-copy">© 2025 gaygames.ai — Play Together. Slay Together.</div>
-  <div class="footer-flags">🏳️‍🌈🏳️‍⚧️🌈</div>
-</footer>
-
-<!-- Inline mini game -->
 <script>
-// ── Waitlist ──────────────────────────────────────────────────────────────
-document.getElementById('waitlistBtn').addEventListener('click', () => {
-  const email = document.getElementById('waitlistEmail').value.trim();
-  if (!email || !email.includes('@')) {
-    document.getElementById('waitlistEmail').style.borderColor = '#FF4B6E';
-    return;
-  }
-  document.querySelector('.waitlist-form').style.display = 'none';
-  document.getElementById('waitlistThanks').style.display = 'block';
-  // TODO: POST to your email collection endpoint
-  console.log('Waitlist signup:', email);
-});
-document.getElementById('waitlistEmail').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('waitlistBtn').click();
-  document.getElementById('waitlistEmail').style.borderColor = '';
-});
-
-// ── Mini game ────────────────────────────────────────────────────────────
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const WORLD = 3000, BOOST_MAX = 100;
-const SKINS = [
-  ['#F72585','#7B2FBE','#C77DFF'],['#FFD166','#FF4B6E','#FF8C42'],
-  ['#06D6A0','#4361EE','#4CC9F0'],['#4CC9F0','#F72585','#7B2FBE'],
-  ['#FF8C42','#06D6A0','#FFD166'],['#9B5DE5','#F72585','#4CC9F0'],
-  ['#FF4B6E','#FFD166','#06D6A0'],['#4361EE','#06D6A0','#F72585'],
-];
-const FC = ['#F72585','#FF8C42','#FFD166','#06D6A0','#4CC9F0','#7B2FBE','#C77DFF','#FF4B6E'];
-const BNAMES = ['GlitterBoy','RainbowSlay','FabSnake','QueenCobra','DiscoViper','SparkleWorm',
-  'DragSnake','PridePython','GayGator','LavenderLizard','CosmicCobra','NeonQueen',
-  'BisexualBoa','TransViper','LesbianSerpent','QueerCuda','PansexualPython','FierceAsp',
-  'GlitterPython','VelvetViper'];
+// ─── Config ────────────────────────────────────────────────────────────────
+const WORLD = 3000;
+const FOOD_COLORS = ['#F72585','#FF8C42','#FFD166','#06D6A0','#4CC9F0','#7B2FBE','#C77DFF','#FF4B6E'];
 
-function resizeCanvas() {
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+// ─── State ────────────────────────────────────────────────────────────────
+let ws = null;
+let playerId = null;
+let snakes = new Map();       // id -> snake data
+let foods = new Map();        // id -> food
+let orbs = new Map();         // id -> orb
+let cam = { x: 0, y: 0 };
+let mouse = { x: 0, y: 0 };
+let boosting = false;
+let boost = 100;
+let playerScore = 0;
+let selectedSkin = 0;
+let running = false;
+let animFrame = null;
+let lastInput = { angle: 0, boosting: false };
+let pingStart = 0, pingMs = 0;
+let lastPing = 0;
+
+// ─── Resize ────────────────────────────────────────────────────────────────
+function resize() {
+  // Simple, reliable: canvas pixel buffer = CSS pixels = game coordinate space
+  // No DPR scaling — keeps coordinate system perfectly consistent everywhere
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
 }
-resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); });
+window.addEventListener('resize', () => {
+  resize();
+  // Re-center camera on player after resize
+  const player = snakes.get(playerId);
+  if (player && player.segments && player.segments[0]) {
+    cam.x = player.segments[0].x - cw() / 2;
+    cam.y = player.segments[0].y - ch() / 2;
+  }
+});
+resize();
 
-const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
-const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
-const rand = (a,b) => a + Math.random()*(b-a);
+// Canvas dimensions — always window size
+function cw() { return canvas.width; }
+function ch() { return canvas.height; }
 
-let mouse = {x: canvas.width/2, y: canvas.height/2};
-let boosting = false, cam = {x:0,y:0};
-let player = null, bots = [], foods = [], orbs = [];
-let running = false, animFrame = null, lastTime = 0;
+// ─── WebSocket ────────────────────────────────────────────────────────────
+const WS_URL = (() => {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${proto}//${location.host}`;
+})();
 
-// Custom cursor for game
-const cursor = document.createElement('div');
-cursor.id = 'gameCursor';
-cursor.style.cssText = 'position:fixed;pointer-events:none;z-index:200;transform:translate(-50%,-50%);display:none;';
-document.body.appendChild(cursor);
+function connect(name, skinIdx) {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('connecting-screen').style.display = 'flex';
 
-function updateCursor() {
-  if (!player || !running) return;
-  const b = player.boost / BOOST_MAX;
-  const boosting = player.boosting;
-  const size = boosting ? 26 : 20;
-  const rc = boosting ? '#FFD166' : '#F72585';
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'join', name, skin: skinIdx }));
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleMessage(msg);
+  };
+
+  ws.onclose = () => {
+    running = false;
+    cancelAnimationFrame(animFrame);
+    // Show reconnect UI
+    document.getElementById('dead-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'flex';
+    document.getElementById('connecting-screen').style.display = 'none';
+    addKillMsg('🔌 Disconnected from server');
+  };
+
+  ws.onerror = () => {
+    document.getElementById('connecting-screen').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'flex';
+    addKillMsg('❌ Could not connect to server');
+  };
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+    case 'init': {
+      playerId = msg.playerId;
+      snakes.clear(); foods.clear(); orbs.clear();
+      for (const s of msg.snakes) snakes.set(s.id, s);
+      for (const f of msg.foods) foods.set(f.id, f);
+      for (const o of msg.orbs) orbs.set(o.id, o);
+
+      // Center camera on player
+      const player = snakes.get(playerId);
+      if (player && player.segments.length) {
+        cam.x = player.segments[0].x - cw() / 2;
+        cam.y = player.segments[0].y - ch() / 2;
+      }
+
+      document.getElementById('connecting-screen').style.display = 'none';
+      running = true;
+      animFrame = requestAnimationFrame(gameLoop);
+      break;
+    }
+
+    case 'state': {
+      // Update snakes from server
+      for (const su of msg.snakes) {
+        const existing = snakes.get(su.id);
+        if (existing) {
+          // All snakes: use server positions directly
+          // Server now runs at 60fps so positions are always fresh
+          if (su.segments && su.segments.length > 0) {
+            if (existing.segments.length === 0) {
+              // First update — snap to server position
+              existing.segments = su.segments;
+            } else {
+              // Smooth lerp toward server position to avoid jitter
+              const dx = su.segments[0].x - existing.segments[0].x;
+              const dy = su.segments[0].y - existing.segments[0].y;
+              const d = Math.hypot(dx, dy);
+              if (d > 50) {
+                // Too far — snap
+                existing.segments = su.segments;
+              } else {
+                // Lerp head and body segments
+                for (let i = 0; i < su.segments.length; i++) {
+                  if (existing.segments[i]) {
+                    existing.segments[i].x += (su.segments[i].x - existing.segments[i].x) * 0.4;
+                    existing.segments[i].y += (su.segments[i].y - existing.segments[i].y) * 0.4;
+                  } else {
+                    existing.segments.push({...su.segments[i]});
+                  }
+                }
+              }
+            }
+            existing.fullLength = su.fullLength || su.segments.length;
+            // Trim to server length
+            while (existing.segments.length > (existing.fullLength || 0) + 4) existing.segments.pop();
+          }
+          existing.angle = su.angle;
+          existing.radius = su.radius;
+          existing.boosting = su.boosting;
+          existing.alive = true; // server only sends alive snakes in state
+        } else {
+          // New snake — add it
+          snakes.set(su.id, { ...su, alive: true, segments: su.segments ? [...su.segments] : [] });
+        }
+      }
+      // Sync orbs — server sends complete nearby list
+      const serverOrbIds = new Set(msg.orbs.map(o => o.id));
+      for (const [id] of orbs) { if (!serverOrbIds.has(id)) orbs.delete(id); }
+      for (const o of msg.orbs) orbs.set(o.id, o);
+
+      // Sync nearby foods from server (authoritative — removes eaten ghost foods)
+      if (msg.foods && msg.foods.length > 0) {
+        const serverFoodIds = new Set(msg.foods.map(f => f.id));
+        // Only remove foods that are in our current view range (don't remove far-away foods)
+        const player2 = snakes.get(playerId);
+        if (player2 && player2.segments && player2.segments[0]) {
+          const ph = player2.segments[0];
+          for (const [id, f] of foods) {
+            const d = Math.hypot(f.x - ph.x, f.y - ph.y);
+            if (d < 800 && !serverFoodIds.has(id)) foods.delete(id);
+          }
+        }
+        for (const f of msg.foods) { if (!foods.has(f.id)) foods.set(f.id, f); }
+      }
+
+      // Update player length and score
+      playerScore = msg.playerScore ?? playerScore;
+      // Update player fullLength from server
+      const pSnake = snakes.get(playerId);
+      if (pSnake && msg.playerLength) pSnake.fullLength = msg.playerLength;
+
+      // Remove snakes that are no longer in range (not in this state update)
+      // This prevents frozen ghost snakes when bots go out of broadcast range
+      if (msg.snakes && msg.snakes.length > 0) {
+        const activeIds = new Set(msg.snakes.map(s => s.id));
+        activeIds.add(playerId); // always keep player
+        for (const [id] of snakes) {
+          if (!activeIds.has(id)) snakes.delete(id);
+        }
+      }
+
+      // Update leaderboard
+      if (msg.leaderboard) minimapData = msg.leaderboard;
+      updateLeaderboard(msg.leaderboard);
+      break;
+    }
+
+    case 'player_joined': {
+      snakes.set(msg.snake.id, msg.snake);
+      break;
+    }
+
+    case 'player_left': {
+      snakes.delete(msg.id);
+      break;
+    }
+
+    case 'snake_died': {
+      const s = snakes.get(msg.id);
+      if (s) s.alive = false;
+      if (msg.orbs) for (const o of msg.orbs) orbs.set(o.id, o);
+
+      if (msg.killerId === playerId) {
+        addKillMsg(`💀 You slayed ${s?.name || '?'}!`);
+      }
+      setTimeout(() => snakes.delete(msg.id), 2000);
+      break;
+    }
+
+    case 'food_eaten': {
+      foods.delete(msg.id); // Remove eaten food immediately
+      const s = snakes.get(msg.snakeId);
+      if (s) s.fullLength = msg.newLength;
+      break;
+    }
+
+    case 'orb_eaten': {
+      orbs.delete(msg.id);
+      break;
+    }
+
+    case 'you_died': {
+      running = false;
+      cancelAnimationFrame(animFrame);
+      document.getElementById('finalLen').textContent = msg.length;
+      document.getElementById('finalScore').textContent = msg.score;
+      document.getElementById('finalKills').textContent = msg.kills;
+      document.getElementById('killedBy').textContent = msg.killerName;
+      document.getElementById('finalRank').textContent = '#' + msg.rank;
+      setTimeout(() => { document.getElementById('dead-screen').style.display = 'flex'; }, 800);
+      break;
+    }
+
+    case 'respawned': {
+      playerId = msg.playerId;
+      snakes.set(msg.snake.id, msg.snake);
+      running = true;
+      animFrame = requestAnimationFrame(gameLoop);
+      document.getElementById('dead-screen').style.display = 'none';
+      break;
+    }
+  }
+}
+
+// ─── Input sending ─────────────────────────────────────────────────────────
+function sendInput() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const player = snakes.get(playerId);
+  if (!player || !player.alive) return;
+
+  const head = player.segments[0];
+  if (!head) return;
+
+  const wx = cam.x + mouse.x;
+  const wy = cam.y + mouse.y;
+  const angle = Math.atan2(wy - head.y, wx - head.x);
+
+  // Send every frame for maximum responsiveness (small messages, worth it)
+  ws.send(JSON.stringify({ type: 'input', angle, boosting }));
+  lastInput = { angle, boosting };
+}
+
+// Ping
+function sendPing() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  pingStart = performance.now();
+  ws.send(JSON.stringify({ type: 'ping' }));
+}
+
+// ─── Game loop ─────────────────────────────────────────────────────────────
+let lastFrame = 0;
+function gameLoop(ts) {
+  if (!running) return;
+  const dt = Math.min((ts - lastFrame) / 1000 * 60, 4);
+  lastFrame = ts;
+
+  applyKeyboardSteering();
+  updateCursor(mouse.x, mouse.y);
+  sendInput();
+  if (ts - lastPing > 2000) { lastPing = ts; /* sendPing(); */ }
+
+  // No client-side prediction — server runs at 60fps so we just use server positions
+  // This ensures food pickup and collision always match what you see
+  const player = snakes.get(playerId);
+  if (player && player.alive && player.segments.length > 0) {
+    // Smooth camera follow based on server head position
+    const head = player.segments[0];
+    const tx = head.x - cw() / 2;
+    const ty = head.y - ch() / 2;
+    cam.x += (tx - cam.x) * 0.2;
+    cam.y += (ty - cam.y) * 0.2;
+  }
+
+  // Animate food
+  for (const f of foods.values()) {
+    f.pulse = (f.pulse || 0) + dt * 0.05;
+  }
+
+  render();
+  updateHUD();
+  drawMinimap();
+  animFrame = requestAnimationFrame(gameLoop);
+}
+
+// ─── Render ────────────────────────────────────────────────────────────────
+function render() {
+  ctx.fillStyle = '#08000F';
+  ctx.fillRect(0, 0, cw(), ch());
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 1;
+  const gs = 80;
+  for (let x = -(cam.x % gs); x < cw(); x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = -(cam.y % gs); y < ch(); y += gs) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // World border — flashes red when near edge
+  const _pb = snakes.get(playerId);
+  let _bwarn = false;
+  if (_pb && _pb.segments && _pb.segments[0]) {
+    const _ph = _pb.segments[0];
+    _bwarn = Math.min(_ph.x, _ph.y, WORLD-_ph.x, WORLD-_ph.y) < 300;
+  }
+  ctx.strokeStyle = _bwarn ? ('rgba(255,50,50,' + (0.5 + 0.4*Math.abs(Math.sin(Date.now()/150))) + ')') : 'rgba(247,37,133,0.35)';
+  ctx.lineWidth = _bwarn ? 10 : 5;
+  ctx.strokeRect(-cam.x, -cam.y, WORLD, WORLD);
+  if (_bwarn) { ctx.fillStyle='rgba(255,0,0,0.05)'; ctx.fillRect(-cam.x,-cam.y,WORLD,WORLD); }
+
+  const vx1 = cam.x - 40, vy1 = cam.y - 40;
+  const vx2 = cam.x + cw() + 40, vy2 = cam.y + ch() + 40;
+
+  // Foods
+  for (const f of foods.values()) {
+    if (f.x < vx1 || f.x > vx2 || f.y < vy1 || f.y > vy2) continue;
+    const fx = f.x - cam.x, fy = f.y - cam.y;
+    const pr = f.r * (0.85 + 0.15 * Math.sin(f.pulse || 0));
+    ctx.save();
+    ctx.shadowColor = f.color; ctx.shadowBlur = 6;
+    ctx.fillStyle = f.color;
+    ctx.beginPath(); ctx.arc(fx, fy, Math.max(0.5, pr), 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.arc(fx - pr * 0.2, fy - pr * 0.2, Math.max(0.5, pr * 0.3), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // Orbs
+  for (const o of orbs.values()) {
+    if (o.x < vx1 || o.x > vx2 || o.y < vy1 || o.y > vy2) continue;
+    const ox = o.x - cam.x, oy = o.y - cam.y;
+    ctx.save();
+    ctx.shadowColor = o.color; ctx.shadowBlur = 12;
+    ctx.fillStyle = o.color;
+    ctx.beginPath(); ctx.arc(ox, oy, Math.max(0.5, o.r), 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // Snakes
+  const sortedSnakes = [...snakes.values()].sort((a, b) => {
+    if (a.id === playerId) return 1;
+    if (b.id === playerId) return -1;
+    return 0;
+  });
+
+  for (const s of sortedSnakes) {
+    if (!s.alive || !s.segments || !s.segments.length) continue;
+    if (s.segments[0].x < vx1 - 100 || s.segments[0].x > vx2 + 100 ||
+        s.segments[0].y < vy1 - 100 || s.segments[0].y > vy2 + 100) continue;
+    drawSnake(s);
+  }
+}
+
+function drawSnake(s) {
+  const segs = s.segments;
+  const r = s.radius || 6;
+  const skin = s.skin || ['#F72585', '#7B2FBE', '#C77DFF'];
+  const isPlayer = s.id === playerId;
+
+  for (let i = segs.length - 1; i >= 0; i--) {
+    const seg = segs[i];
+    const sx = seg.x - cam.x, sy = seg.y - cam.y;
+    if (sx < -20 || sx > cw() + 20 || sy < -20 || sy > ch() + 20) continue;
+
+    const t = i / segs.length;
+    const segR = i === 0 ? r * 1.15 : Math.max(r * 0.5, r * (1 - t * 0.3));
+    const colorIdx = Math.floor(t * skin.length);
+
+    ctx.fillStyle = skin[colorIdx % skin.length];
+    if (i === 0) { ctx.shadowColor = skin[0]; ctx.shadowBlur = isPlayer ? 18 : 10; }
+    else ctx.shadowBlur = 0;
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(0.5, segR), 0, Math.PI * 2);
+    ctx.fill();
+
+    // Shine
+    if (i === 0 || i % 4 === 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.beginPath();
+      ctx.arc(sx - segR * 0.25, sy - segR * 0.25, Math.max(0.3, segR * 0.38), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // Head details
+  const hx = segs[0].x - cam.x, hy = segs[0].y - cam.y;
+  const angle = s.angle || 0;
+
+  // Eyes
+  const ex1 = hx + Math.cos(angle - 0.5) * r * 0.7;
+  const ey1 = hy + Math.sin(angle - 0.5) * r * 0.7;
+  const ex2 = hx + Math.cos(angle + 0.5) * r * 0.7;
+  const ey2 = hy + Math.sin(angle + 0.5) * r * 0.7;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(ex1, ey1, Math.max(0.5, r * 0.32), 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex2, ey2, Math.max(0.5, r * 0.32), 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.arc(ex1 + Math.cos(angle) * r * 0.1, ey1 + Math.sin(angle) * r * 0.1, Math.max(0.3, r * 0.17), 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex2 + Math.cos(angle) * r * 0.1, ey2 + Math.sin(angle) * r * 0.1, Math.max(0.3, r * 0.17), 0, Math.PI * 2); ctx.fill();
+
+  // Name tag
+  if (r > 4) {
+    const fs = Math.max(10, Math.min(14, r * 1.1));
+    ctx.font = `bold ${fs}px Nunito, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillText(s.name, hx + 1, hy - r * 1.6 + 1);
+    ctx.fillStyle = isPlayer ? '#FFD166' : 'white';
+    ctx.fillText(s.name, hx, hy - r * 1.6);
+  }
+}
+
+let minimapData = [];
+
+function drawMinimap() {
+  const mc = document.getElementById('minimap');
+  if (!mc || !running) return;
+  const mctx = mc.getContext('2d');
+  const MW = mc.width, MH = mc.height;
+  const scale = MW / WORLD;
+
+  mctx.clearRect(0, 0, MW, MH);
+  mctx.fillStyle = 'rgba(0,0,0,0.75)';
+  mctx.fillRect(0, 0, MW, MH);
+  mctx.strokeStyle = 'rgba(247,37,133,0.6)';
+  mctx.lineWidth = 1;
+  mctx.strokeRect(0.5, 0.5, MW-1, MH-1);
+
+  // Snake dots from leaderboard positions
+  for (const e of minimapData) {
+    const mx = e.x * scale;
+    const my = e.y * scale;
+    const isMe = e.id === playerId;
+    mctx.beginPath();
+    mctx.arc(mx, my, isMe ? 4 : 2, 0, Math.PI*2);
+    mctx.fillStyle = isMe ? '#FFD166' : (e.isBot ? 'rgba(100,200,255,0.7)' : '#F72585');
+    if (isMe) { mctx.shadowColor='#FFD166'; mctx.shadowBlur=6; }
+    mctx.fill();
+    mctx.shadowBlur = 0;
+  }
+
+  // Viewport box
+  const player = snakes.get(playerId);
+  if (player && player.segments && player.segments[0]) {
+    const ph = player.segments[0];
+    const vx = Math.max(0, (ph.x - cw()/2) * scale);
+    const vy = Math.max(0, (ph.y - ch()/2) * scale);
+    const vw = Math.min(MW - vx, cw() * scale);
+    const vh = Math.min(MH - vy, ch() * scale);
+    mctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    mctx.lineWidth = 0.75;
+    mctx.strokeRect(vx, vy, vw, vh);
+  }
+}
+
+function updateHUD() {
+  const player = snakes.get(playerId);
+  const len = player?.fullLength || player?.segments?.length || 0;
+  document.getElementById('lengthVal').textContent = len;
+}
+
+function updateLeaderboard(lb) {
+  if (!lb) return;
+  const el = document.getElementById('lb-list');
+  el.innerHTML = lb.map((e, i) => {
+    const isMe = e.id === playerId;
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+    return `<div class="lb-entry" style="${isMe ? 'color:#FFD166' : ''}">
+      <span>${medal} ${e.name}</span><span style="font-family:'Fredoka One',cursive">${e.length}</span>
+    </div>`;
+  }).join('');
+}
+
+function addKillMsg(msg) {
+  const feed = document.getElementById('kill-feed');
+  const el = document.createElement('div');
+  el.className = 'kill-msg';
+  el.textContent = msg;
+  feed.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ─── Custom cursor ──────────────────────────────────────────────────────────
+const cursorEl = document.createElement('div');
+cursorEl.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);display:none;';
+document.body.appendChild(cursorEl);
+let cursorVisible = false;
+
+function updateCursor(cx, cy) {
+  if (!running) return;
+  cursorEl.style.left = cx + 'px';
+  cursorEl.style.top = cy + 'px';
+  if (!cursorVisible) { cursorEl.style.display = 'block'; cursorVisible = true; }
+  const b = boost / 100;
+  const isBoosting = boosting;
+  const size = isBoosting ? 26 : 20;
+  const rc = isBoosting ? '#FFD166' : '#F72585';
   const r = size - 3;
-  const circ = Math.PI*2*r;
-  // cursor position updated on mousemove
-  
-  cursor.innerHTML = `<svg width="${size*2}" height="${size*2}" viewBox="0 0 ${size*2} ${size*2}" style="display:block;margin:-${size}px 0 0 -${size}px">
-    <circle cx="${size}" cy="${size}" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5" stroke-opacity="0.85"
+  const circ = Math.PI * 2 * r;
+  cursorEl.innerHTML = `<svg width="${size*2}" height="${size*2}" viewBox="0 0 ${size*2} ${size*2}" style="display:block;margin:-${size}px 0 0 -${size}px">
+    <circle cx="${size}" cy="${size}" r="${r}" fill="none" stroke="${rc}" stroke-width="2.5" stroke-opacity="0.9"
       stroke-dasharray="${circ}" stroke-dashoffset="${(1-b)*circ}"
       stroke-linecap="round" transform="rotate(-90 ${size} ${size})"/>
     <circle cx="${size}" cy="${size}" r="3.5" fill="${rc}" fill-opacity="0.9"/>
@@ -552,251 +733,167 @@ function updateCursor() {
   </svg>`;
 }
 
-class Snake {
-  constructor(x, y, name, skinIdx, isPlayer=false) {
-    this.name = name; this.skin = SKINS[skinIdx%SKINS.length]; this.isPlayer = isPlayer;
-    this.alive = true; this.angle = Math.random()*Math.PI*2; this.targetAngle = this.angle;
-    this.boost = BOOST_MAX; this.boosting = false; this.kills = 0;
-    this.segments = [];
-    const len = isPlayer ? 8 : (6 + Math.floor(Math.random()*20));
-    for (let i = 0; i < len; i++) this.segments.push({x: x-Math.cos(this.angle)*i*9, y: y-Math.sin(this.angle)*i*9});
-    this.botTimer = 0; this.botTargetAngle = this.angle;
-  }
-  get head() { return this.segments[0]; }
-  get length() { return this.segments.length; }
-  get radius() { return clamp(4 + this.length*0.06, 4, 14); }
+// ─── Keyboard steering ───────────────────────────────────────────────────────
+const keys = {};
+// Virtual mouse position for keyboard steering — starts at center
+let keyMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+const KEY_SPEED = 8; // pixels per frame the virtual cursor moves
 
-  update(dt, all) {
-    if (!this.alive) return;
-    if (this.isPlayer) {
-      const wx = cam.x + mouse.x, wy = cam.y + mouse.y;
-      this.targetAngle = Math.atan2(wy - this.head.y, wx - this.head.x);
-      this.boosting = boosting && this.boost > 0;
-    } else { this.updateBot(dt, all); }
-    let da = this.targetAngle - this.angle;
-    while (da > Math.PI) da -= Math.PI*2; while (da < -Math.PI) da += Math.PI*2;
-    this.angle += Math.sign(da) * Math.min(Math.abs(da), 0.09);
-    if (this.boosting && this.boost > 0) {
-      this.boost = Math.max(0, this.boost - dt*18);
-      if (this.boost <= 0) this.boosting = false;
-      if (this.length > 6 && Math.random() < 0.12) {
-        const t = this.segments.pop();
-        orbs.push({x:t.x, y:t.y, color:this.skin[0], r:this.radius*0.7, value:1});
-      }
-    } else { this.boost = Math.min(BOOST_MAX, this.boost + dt*6); }
-    const spd = (this.boosting ? 2.2*1.9 : 2.2) * dt;
-    const nx = clamp(this.head.x + Math.cos(this.angle)*spd, 10, WORLD-10);
-    const ny = clamp(this.head.y + Math.sin(this.angle)*spd, 10, WORLD-10);
-    if (nx<=10||nx>=WORLD-10||ny<=10||ny>=WORLD-10) { killSnake(this,'the void'); return; }
-    this.segments.unshift({x:nx,y:ny}); this.segments.pop();
-  }
-
-  updateBot(dt, all) {
-    this.botTimer -= dt;
-    if (this.botTimer > 0) { this.targetAngle = this.botTargetAngle; return; }
-    this.botTimer = 0.2 + Math.random()*0.35;
-    const h = this.head;
-    let bestF = null, bestFD = 280;
-    for (const f of foods) { const d=dist(h,f); if(d<bestFD){bestFD=d;bestF=f;} }
-    for (const o of orbs)  { const d=dist(h,o); if(d<bestFD*0.8){bestFD=d;bestF=o;} }
-    let threat=null,tD=250,prey=null,pD=350;
-    for (const s of all) {
-      if (s===this||!s.alive) continue;
-      const d = dist(h, s.head);
-      if (d<tD&&s.length>this.length*1.2) {threat=s;tD=d;}
-      if (d<pD&&s.length<this.length*0.8) {prey=s;pD=d;}
-    }
-    const margin=200, edge=h.x<margin||h.x>WORLD-margin||h.y<margin||h.y>WORLD-margin;
-    if (edge) { this.botTargetAngle=Math.atan2(WORLD/2-h.y,WORLD/2-h.x); this.boosting=false; }
-    else if (threat&&tD<180) { this.botTargetAngle=Math.atan2(h.y-threat.head.y,h.x-threat.head.x); this.boosting=this.boost>20; }
-    else if (prey&&pD<250)   { this.botTargetAngle=Math.atan2(prey.head.y-h.y,prey.head.x-h.x); this.boosting=pD<100&&this.boost>30; }
-    else if (bestF)           { this.botTargetAngle=Math.atan2(bestF.y-h.y,bestF.x-h.x); this.boosting=false; }
-    else { this.botTargetAngle += (Math.random()-0.5)*0.9; }
-    this.targetAngle = this.botTargetAngle;
-  }
-
-  draw() {
-    if (!this.alive) return;
-    const segs=this.segments, r=this.radius, skin=this.skin;
-    const vx1=cam.x-40,vy1=cam.y-40,vx2=cam.x+canvas.width+40,vy2=cam.y+canvas.height+40;
-    for (let i=segs.length-1;i>=0;i--) {
-      const s=segs[i];
-      if(s.x<vx1||s.x>vx2||s.y<vy1||s.y>vy2) continue;
-      const sx=s.x-cam.x, sy=s.y-cam.y;
-      const t=i/segs.length, sr=i===0?r*1.15:Math.max(r*0.5,r*(1-t*0.3));
-      ctx.fillStyle = skin[Math.floor(t*skin.length)%skin.length];
-      if (i===0) { ctx.shadowColor=skin[0]; ctx.shadowBlur=this.isPlayer?18:10; } else ctx.shadowBlur=0;
-      ctx.beginPath(); ctx.arc(sx,sy,Math.max(0.5,sr),0,Math.PI*2); ctx.fill();
-      if (i===0||i%4===0) {
-        ctx.fillStyle='rgba(255,255,255,0.18)';
-        ctx.beginPath(); ctx.arc(sx-sr*0.25,sy-sr*0.25,Math.max(0.3,sr*0.38),0,Math.PI*2); ctx.fill();
-      }
-    }
-    ctx.shadowBlur=0;
-    const hx=segs[0].x-cam.x, hy=segs[0].y-cam.y, a=this.angle;
-    const ex1=hx+Math.cos(a-0.5)*r*0.7, ey1=hy+Math.sin(a-0.5)*r*0.7;
-    const ex2=hx+Math.cos(a+0.5)*r*0.7, ey2=hy+Math.sin(a+0.5)*r*0.7;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(ex1,ey1,Math.max(0.5,r*0.32),0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(ex2,ey2,Math.max(0.5,r*0.32),0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#111';
-    ctx.beginPath();ctx.arc(ex1+Math.cos(a)*r*0.1,ey1+Math.sin(a)*r*0.1,Math.max(0.3,r*0.17),0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(ex2+Math.cos(a)*r*0.1,ey2+Math.sin(a)*r*0.1,Math.max(0.3,r*0.17),0,Math.PI*2);ctx.fill();
-    if (r>4) {
-      const fs=Math.max(9,Math.min(13,r*1.1));
-      ctx.font=`bold ${fs}px Nunito,sans-serif`; ctx.textAlign='center';
-      ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillText(this.name,hx+1,hy-r*1.65+1);
-      ctx.fillStyle=this.isPlayer?'#FFD166':'white'; ctx.fillText(this.name,hx,hy-r*1.65);
-    }
-  }
-  grow(v=1){const t=this.segments[this.segments.length-1];for(let i=0;i<v;i++)this.segments.push({...t});}
-}
-
-function killSnake(snake, killerName) {
-  if (!snake.alive) return;
-  snake.alive = false;
-  for (let i=0;i<snake.segments.length;i+=2) {
-    const s=snake.segments[i];
-    orbs.push({x:s.x+(Math.random()-.5)*10,y:s.y+(Math.random()-.5)*10,color:snake.skin[i%snake.skin.length],r:snake.radius*.9,value:1});
-  }
-  if (snake.isPlayer) {
-    running=false; cancelAnimationFrame(animFrame);
-    cursor.style.display='none';
-    setTimeout(()=>{
-      document.getElementById('previewOverlay').classList.remove('hidden');
-      document.getElementById('previewPlayBtn').textContent='💅 Play Again';
-      document.getElementById('gameHud').style.display='none';
-    }, 800);
-  }
-}
-
-function initGame() {
-  foods=[]; orbs=[];
-  for (let i=0;i<500;i++) foods.push({x:rand(50,WORLD-50),y:rand(50,WORLD-50),color:FC[Math.floor(Math.random()*FC.length)],r:rand(4,8),value:1,pulse:Math.random()*Math.PI*2});
-  const usedNames=new Set(); bots=[];
-  for (let i=0;i<20;i++) {
-    const avail=BNAMES.filter(n=>!usedNames.has(n));
-    const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[i%BNAMES.length];
-    usedNames.add(name);
-    const b=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,i%SKINS.length,false);
-    const extra=Math.floor(Math.random()*40);
-    const tail=b.segments[b.segments.length-1];
-    for(let j=0;j<extra;j++) b.segments.push({...tail});
-    bots.push(b);
-  }
-  player=new Snake(WORLD/2+(Math.random()-.5)*300,WORLD/2+(Math.random()-.5)*300,'SnakeQueen',0,true);
-  cam.x=player.head.x-canvas.width/2; cam.y=player.head.y-canvas.height/2;
-  mouse.x=canvas.width/2; mouse.y=canvas.height/2;
-  cursor.style.left=mouse.x+'px'; cursor.style.top=mouse.y+'px';
-  cursor.style.display='block';
-  running=true; lastTime=performance.now();
-  document.getElementById('gameHud').style.display='block';
-  animFrame=requestAnimationFrame(loop);
-}
-
-function loop(ts) {
+function applyKeyboardSteering() {
   if (!running) return;
-  const dt=Math.min((ts-lastTime)/1000*60,4); lastTime=ts;
-  update(dt); render(); updateHUD(); updateCursor();
-  animFrame=requestAnimationFrame(loop);
-}
-
-function update(dt) {
-  const all=[player,...bots].filter(s=>s&&s.alive);
-  for (const s of all) s.update(dt,all);
-  const toDelF=[];
-  for (const s of all) for(let i=foods.length-1;i>=0;i--) if(dist(s.head,foods[i])<s.radius+foods[i].r) { s.grow(foods[i].value); toDelF.push(i); }
-  const delF=new Set(toDelF); foods=foods.filter((_,i)=>!delF.has(i));
-  for(let i=0;i<delF.size;i++) foods.push({x:rand(50,WORLD-50),y:rand(50,WORLD-50),color:FC[Math.floor(Math.random()*FC.length)],r:rand(4,8),value:1,pulse:Math.random()*Math.PI*2});
-  for(const s of all) for(let i=orbs.length-1;i>=0;i--) if(orbs[i]&&dist(s.head,orbs[i])<s.radius+orbs[i].r+8){s.grow(orbs[i].value);orbs.splice(i,1);}
-  for(const f of foods) f.pulse+=dt*0.05;
-  const toKill=new Map();
-  for(const s of all){
-    if(toKill.has(s))continue;
-    for(const other of all){
-      if(other===s||!other.alive)continue;
-      for(let i=1;i<other.segments.length;i++) if(dist(s.head,other.segments[i])<s.radius+other.radius*0.8){if(!toKill.has(s))toKill.set(s,other.name);break;}
-      if(dist(s.head,other.head)<s.radius+other.radius){
-        if(s.length<=other.length&&!toKill.has(s))toKill.set(s,other.name);
-        if(other.length<=s.length&&!toKill.has(other))toKill.set(other,s.name);
-      }
-    }
-  }
-  for(const[s,k]of toKill)killSnake(s,k);
-  for(let i=0;i<bots.length;i++){
-    if(!bots[i].alive&&!bots[i]._respawnScheduled){
-      bots[i]._respawnScheduled=true;
-      const idx=i;
-      setTimeout(()=>{
-        const avail=BNAMES.filter(n=>![...bots].some(b=>b.alive&&b.name===n));
-        const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[Math.floor(Math.random()*BNAMES.length)];
-        bots[idx]=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,Math.floor(Math.random()*SKINS.length),false);
-      },300);
-    }
-  }
-  if(player&&player.alive){
-    const tx=player.head.x-canvas.width/2, ty=player.head.y-canvas.height/2;
-    cam.x+=(tx-cam.x)*0.12; cam.y+=(ty-cam.y)*0.12;
+  let dx = 0, dy = 0;
+  if (keys['ArrowLeft']  || keys['KeyA']) dx -= KEY_SPEED;
+  if (keys['ArrowRight'] || keys['KeyD']) dx += KEY_SPEED;
+  if (keys['ArrowUp']    || keys['KeyW']) dy -= KEY_SPEED;
+  if (keys['ArrowDown']  || keys['KeyS']) dy += KEY_SPEED;
+  if (dx !== 0 || dy !== 0) {
+    // Move virtual cursor in the direction held
+    keyMouse.x = window.innerWidth / 2 + dx * 40;
+    keyMouse.y = window.innerHeight / 2 + dy * 40;
+    // Only override real mouse if keyboard is being used
+    mouse.x = keyMouse.x;
+    mouse.y = keyMouse.y;
   }
 }
 
-function render(){
-  ctx.fillStyle='#08000F'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.strokeStyle='rgba(255,255,255,0.022)'; ctx.lineWidth=1;
-  for(let x=-(cam.x%80);x<canvas.width;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
-  for(let y=-(cam.y%80);y<canvas.height;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
-  ctx.strokeStyle='rgba(247,37,133,0.4)'; ctx.lineWidth=4;
-  ctx.strokeRect(-cam.x,-cam.y,WORLD,WORLD);
-  const vx1=cam.x-20,vy1=cam.y-20,vx2=cam.x+canvas.width+20,vy2=cam.y+canvas.height+20;
-  for(const f of foods){
-    if(f.x<vx1||f.x>vx2||f.y<vy1||f.y>vy2)continue;
-    const fx=f.x-cam.x,fy=f.y-cam.y,pr=f.r*(0.85+0.15*Math.sin(f.pulse));
-    ctx.save();ctx.shadowColor=f.color;ctx.shadowBlur=6;ctx.fillStyle=f.color;
-    ctx.beginPath();ctx.arc(fx,fy,Math.max(0.5,pr),0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.beginPath();ctx.arc(fx-pr*0.2,fy-pr*0.2,Math.max(0.3,pr*0.3),0,Math.PI*2);ctx.fill();
-    ctx.restore();
-  }
-  for(const o of orbs){
-    if(o.x<vx1||o.x>vx2||o.y<vy1||o.y>vy2)continue;
-    const ox=o.x-cam.x,oy=o.y-cam.y;
-    ctx.save();ctx.shadowColor=o.color;ctx.shadowBlur=12;ctx.fillStyle=o.color;
-    ctx.beginPath();ctx.arc(ox,oy,Math.max(0.5,o.r),0,Math.PI*2);ctx.fill();ctx.restore();
-  }
-  for(const b of bots)b.draw();
-  if(player)player.draw();
-}
-
-function updateHUD(){
-  if(!player)return;
-  document.getElementById('lengthVal').textContent=player.alive?player.length:0;
-  const all=[player,...bots].filter(s=>s.alive).sort((a,b)=>b.length-a.length);
-  document.getElementById('lbList').innerHTML=all.slice(0,5).map((s,i)=>{
-    const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
-    return`<div class="lb-row" style="${s.isPlayer?'color:#FFD166':''}">${m} ${s.name}<span style="font-family:'Fredoka One',cursive">${s.length}</span></div>`;
-  }).join('');
-}
-
-// Controls — only when game area is focused
-canvas.addEventListener('mousemove',e=>{
-  const rect=canvas.getBoundingClientRect();
-  mouse.x=e.clientX-rect.left;
-  mouse.y=e.clientY-rect.top;
-  cursor.style.left=e.clientX+'px';
-  cursor.style.top=e.clientY+'px';
+// ─── Controls ──────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  updateCursor(e.clientX, e.clientY);
 });
-canvas.addEventListener('mousedown',e=>{if(running){boosting=true;e.preventDefault();}});
-canvas.addEventListener('mouseup',()=>boosting=false);
-canvas.addEventListener('touchmove',e=>{if(running){e.preventDefault();const rect=canvas.getBoundingClientRect();mouse.x=e.touches[0].clientX-rect.left;mouse.y=e.touches[0].clientY-rect.top;}},{passive:false});
-canvas.addEventListener('touchstart',e=>{if(running){boosting=true;const rect=canvas.getBoundingClientRect();mouse.x=e.touches[0].clientX-rect.left;mouse.y=e.touches[0].clientY-rect.top;}});
-canvas.addEventListener('touchend',()=>boosting=false);
-document.addEventListener('keydown',e=>{if(e.code==='Space'&&running){boosting=true;e.preventDefault();}});
-document.addEventListener('keyup',e=>{if(e.code==='Space')boosting=false;});
+canvas.addEventListener('mousedown', () => boosting = true);
+canvas.addEventListener('mouseup', () => boosting = false);
+// ─── Mobile detection + joystick ──────────────────────────────────────────
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 600;
+if (isMobile) {
+  document.getElementById('joystick-wrap').style.display = 'block';
+  document.getElementById('boost-btn').style.display = 'flex';
+}
 
-document.getElementById('previewPlayBtn').addEventListener('click',()=>{
-  document.getElementById('previewOverlay').classList.add('hidden');
-  resizeCanvas();
-  initGame();
+// Joystick state
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
+let joystickActive = false;
+let joystickOrigin = { x: 0, y: 0 };
+const JOYSTICK_MAX = 36;
+
+function updateJoystick(tx, ty) {
+  const rect = joystickBase.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  joystickOrigin = { x: cx, y: cy };
+  const dx = tx - cx, dy = ty - cy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const clamped = Math.min(dist, JOYSTICK_MAX);
+  const angle = Math.atan2(dy, dx);
+  const kx = Math.cos(angle) * clamped;
+  const ky = Math.sin(angle) * clamped;
+  joystickKnob.style.transform = `translate(calc(-50% + ${kx}px), calc(-50% + ${ky}px))`;
+  // Project virtual mouse far in that direction from screen center
+  mouse.x = window.innerWidth / 2 + Math.cos(angle) * 200;
+  mouse.y = window.innerHeight / 2 + Math.sin(angle) * 200;
+}
+
+function resetJoystick() {
+  joystickKnob.style.transform = 'translate(-50%, -50%)';
+  joystickActive = false;
+}
+
+joystickBase.addEventListener('touchstart', e => {
+  e.preventDefault();
+  joystickActive = true;
+  updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+joystickBase.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (joystickActive) updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+joystickBase.addEventListener('touchend', () => { resetJoystick(); });
+
+// Boost button
+const boostBtn = document.getElementById('boost-btn');
+boostBtn.addEventListener('touchstart', e => { e.preventDefault(); boosting = true; });
+boostBtn.addEventListener('touchend', () => boosting = false);
+
+// Fallback — tap anywhere on canvas to boost on mobile
+canvas.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
+canvas.addEventListener('touchstart', e => {
+  // Only if not hitting joystick or boost btn
+  const t = e.touches[0];
+  const joystickRect = joystickBase.getBoundingClientRect();
+  const boostRect = boostBtn.getBoundingClientRect();
+  const inJoystick = t.clientX >= joystickRect.left && t.clientX <= joystickRect.right && t.clientY >= joystickRect.top && t.clientY <= joystickRect.bottom;
+  const inBoost = t.clientX >= boostRect.left && t.clientX <= boostRect.right && t.clientY >= boostRect.top && t.clientY <= boostRect.bottom;
+  if (!inJoystick && !inBoost) { boosting = true; }
 });
+canvas.addEventListener('touchend', () => boosting = false);
+
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space') { boosting = true; e.preventDefault(); }
+  // Prevent arrow keys from scrolling page
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  keys[e.code] = false;
+  if (e.code === 'Space') boosting = false;
+});
+
+// ─── Skin picker ──────────────────────────────────────────────────────────
+document.querySelectorAll('.skin-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.skin-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+    selectedSkin = parseInt(dot.dataset.skin);
+  });
+});
+
+// ─── Buttons ──────────────────────────────────────────────────────────────
+document.getElementById('startBtn').addEventListener('click', () => {
+  const name = document.getElementById('nameInput').value.trim() || 'SnakeQueen';
+  connect(name, selectedSkin);
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  document.getElementById('dead-screen').style.display = 'none';
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'respawn' }));
+    running = true;
+    animFrame = requestAnimationFrame(gameLoop);
+  } else {
+    // Reconnect
+    const name = document.getElementById('nameInput').value.trim() || 'SnakeQueen';
+    connect(name, selectedSkin);
+  }
+});
+
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('startBtn').click();
+});
+
+// Fetch online count periodically
+async function fetchOnlineCount() {
+  try {
+    const res = await fetch('/health');
+    const data = await res.json();
+    document.getElementById('onlineCount').textContent = data.players;
+  } catch {}
+}
+fetchOnlineCount();
+setInterval(fetchOnlineCount, 10000);
+
+// Prevent iOS scroll bounce
+document.body.addEventListener('touchmove', e => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
+// Show joystick when game starts
+function showMobileControls() {
+  if (isMobile) {
+    document.getElementById('joystick-wrap').style.display = 'block';
+    document.getElementById('boost-btn').style.display = 'flex';
+  }
+}
 </script>
 </body>
 </html>
