@@ -714,7 +714,7 @@ function update(dt) {
   for(const s of all){
     if(toKill.has(s))continue;
     for(const other of all){
-      if(other===s)continue;
+      if(other===s||!other.alive)continue;
       for(let i=1;i<other.segments.length;i++) if(dist(s.head,other.segments[i])<s.radius+other.radius*0.8){if(!toKill.has(s))toKill.set(s,other.name);break;}
       if(dist(s.head,other.head)<s.radius+other.radius){
         if(s.length<=other.length&&!toKill.has(s))toKill.set(s,other.name);
@@ -724,10 +724,14 @@ function update(dt) {
   }
   for(const[s,k]of toKill)killSnake(s,k);
   for(let i=0;i<bots.length;i++){
-    if(!bots[i].alive){
-      const avail=BNAMES.filter(n=>![...bots].some(b=>b.alive&&b.name===n));
-      const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[Math.floor(Math.random()*BNAMES.length)];
-      bots[i]=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,Math.floor(Math.random()*SKINS.length),false);
+    if(!bots[i].alive&&!bots[i]._respawnScheduled){
+      bots[i]._respawnScheduled=true;
+      const idx=i;
+      setTimeout(()=>{
+        const avail=BNAMES.filter(n=>![...bots].some(b=>b.alive&&b.name===n));
+        const name=avail.length>0?avail[Math.floor(Math.random()*avail.length)]:BNAMES[Math.floor(Math.random()*BNAMES.length)];
+        bots[idx]=new Snake(rand(100,WORLD-100),rand(100,WORLD-100),name,Math.floor(Math.random()*SKINS.length),false);
+      },300);
     }
   }
   if(player&&player.alive){
