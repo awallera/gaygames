@@ -89,6 +89,7 @@ body { background:var(--bg); overflow:hidden; font-family:'Nunito',sans-serif; c
 #minimap-wrap { position:absolute; bottom:22px; left:14px; pointer-events:none; z-index:15; }
 #minimap { border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.6); display:block; }
 #minimap-label { font-size:0.55rem; opacity:0.35; text-align:center; margin-top:2px; letter-spacing:0.1em; font-weight:700; }
+#version-label { position:absolute; bottom:6px; left:14px; font-size:0.55rem; opacity:0.25; font-weight:700; letter-spacing:0.08em; pointer-events:none; }
 #kill-feed { position:absolute; bottom:80px; left:20px; font-size:0.75rem; font-weight:700; }
 .kill-msg { background:rgba(0,0,0,0.5); padding:4px 12px; border-radius:20px; margin-top:4px; animation:fadeKill 3s forwards; border-left:3px solid var(--pink); }
 @keyframes fadeKill { 0%,70%{opacity:1} 100%{opacity:0} }
@@ -154,6 +155,7 @@ body { background:var(--bg); overflow:hidden; font-family:'Nunito',sans-serif; c
   <div id="controls-hint">MOUSE / WASD / ARROWS — steer<br>CLICK / SPACE — boost</div>
   <div id="kill-feed"></div>
   <div id="minimap-wrap"><canvas id="minimap" width="120" height="120"></canvas><div id="minimap-label">MAP</div></div>
+  <div id="version-label">v1.05</div>
 </div>
 
 <div id="start-screen">
