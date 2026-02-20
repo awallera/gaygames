@@ -321,15 +321,9 @@ function handleMessage(msg) {
                 // Too far — snap
                 existing.segments = su.segments;
               } else {
-                // Lerp head and body segments
-                for (let i = 0; i < su.segments.length; i++) {
-                  if (existing.segments[i]) {
-                    existing.segments[i].x += (su.segments[i].x - existing.segments[i].x) * 0.4;
-                    existing.segments[i].y += (su.segments[i].y - existing.segments[i].y) * 0.4;
-                  } else {
-                    existing.segments.push({...su.segments[i]});
-                  }
-                }
+                // Snap to server positions — server is authoritative at 20fps,
+                // the render loop runs at 60fps and smooths via camera lerp
+                existing.segments = su.segments;
               }
             }
             existing.fullLength = su.fullLength || su.segments.length;
