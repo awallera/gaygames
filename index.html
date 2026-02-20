@@ -155,7 +155,7 @@ body { background:var(--bg); overflow:hidden; font-family:'Nunito',sans-serif; c
   <div id="controls-hint">MOUSE / WASD / ARROWS — steer<br>CLICK / SPACE — boost</div>
   <div id="kill-feed"></div>
   <div id="minimap-wrap"><canvas id="minimap" width="120" height="120"></canvas><div id="minimap-label">MAP</div></div>
-  <div id="version-label">v1.06</div>
+  <div id="version-label">v1.07</div>
 </div>
 
 <div id="start-screen">
@@ -257,9 +257,14 @@ function connect(name, skinIdx) {
     ws.send(JSON.stringify({ type: 'join', name, skin: skinIdx }));
   };
 
+  ws.binaryType = 'arraybuffer';
   ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    handleMessage(msg);
+    if (e.data instanceof ArrayBuffer) {
+      handleBinary(e.data);
+    } else {
+      const msg = JSON.parse(e.data);
+      handleMessage(msg);
+    }
   };
 
   ws.onclose = () => {
@@ -283,8 +288,11 @@ function handleMessage(msg) {
   switch (msg.type) {
     case 'init': {
       playerId = msg.playerId;
-      snakes.clear(); foods.clear(); orbs.clear();
-      for (const s of msg.snakes) snakes.set(s.id, s);
+      snakes.clear(); foods.clear(); orbs.clear(); snakeMeta.clear();
+      for (const s of msg.snakes) {
+        snakeMeta.set(s.id, { name: s.name, skin: s.skin });
+        snakes.set(s.id, { ...s, serverHx: s.segments?.[0]?.x, serverHy: s.segments?.[0]?.y });
+      }
       for (const f of msg.foods) foods.set(f.id, f);
       for (const o of msg.orbs) orbs.set(o.id, o);
 
@@ -375,14 +383,19 @@ function handleMessage(msg) {
         }
       }
 
-      // Update leaderboard
-      if (msg.leaderboard) minimapData = msg.leaderboard;
-      updateLeaderboard(msg.leaderboard);
+      // Update leaderboard (fallback if still JSON state)
+      if (msg.leaderboard) handleLeaderboard(msg.leaderboard);
+      break;
+    }
+
+    case 'leaderboard': {
+      handleLeaderboard(msg.data);
       break;
     }
 
     case 'player_joined': {
-      snakes.set(msg.snake.id, msg.snake);
+      snakeMeta.set(msg.snake.id, { name: msg.snake.name, skin: msg.snake.skin });
+      snakes.set(msg.snake.id, { ...msg.snake, serverHx: msg.snake.segments?.[0]?.x, serverHy: msg.snake.segments?.[0]?.y });
       break;
     }
 
@@ -438,6 +451,172 @@ function handleMessage(msg) {
   }
 }
 
+// ─── Binary state handler ──────────────────────────────────────────────────
+const FOOD_COLORS_CLIENT = ['#F72585','#FF8C42','#FFD166','#06D6A0','#4CC9F0','#7B2FBE','#C77DFF','#FF4B6E'];
+const SKINS_CLIENT = [
+  ['#F72585','#7B2FBE','#C77DFF'],['#FFD166','#FF4B6E','#FF8C42'],
+  ['#06D6A0','#4361EE','#4CC9F0'],['#4CC9F0','#F72585','#7B2FBE'],
+  ['#FF8C42','#06D6A0','#FFD166'],['#9B5DE5','#F72585','#4CC9F0'],
+  ['#FF4B6E','#FFD166','#06D6A0'],['#4361EE','#06D6A0','#F72585'],
+];
+
+// Snake name/meta cache — populated from JSON messages, persists across binary updates
+const snakeMeta = new Map(); // id -> { name, skin }
+
+function handleBinary(buf) {
+  const view = new DataView(buf);
+  let off = 0;
+
+  const pktType    = view.getUint8(off++);
+  if (pktType !== 0x01) return; // only handle state packets
+
+  const snakeCount = view.getUint16(off, true); off += 2;
+  const foodCount  = view.getUint16(off, true); off += 2;
+  const orbCount   = view.getUint16(off, true); off += 2;
+
+  const activeIds = new Set();
+  activeIds.add(playerId);
+
+  // Parse snakes
+  for (let i = 0; i < snakeCount; i++) {
+    const id       = view.getUint16(off, true);       off += 2;
+    const hx       = view.getInt16(off, true) / 10;   off += 2; off++; // +padding
+    const hy       = view.getInt16(off, true) / 10;   off += 2; off++; // +padding
+    const angleByte= view.getUint8(off++);
+    const flags    = view.getUint8(off++);
+    const skinIdx  = view.getUint8(off++);
+    const radius   = view.getUint8(off++) / 10;
+    const fullLen  = view.getUint16(off, true);        off += 2;
+
+    const angle    = (angleByte / 255) * Math.PI * 2;
+    const boosting = !!(flags & 0x01);
+    const isPlayer = !!(flags & 0x02);
+    const skin     = SKINS_CLIENT[skinIdx % SKINS_CLIENT.length];
+
+    activeIds.add(id);
+
+    const existing = snakes.get(id);
+    if (existing) {
+      // Update head, reconstruct body below in game loop
+      existing.serverHx  = hx;
+      existing.serverHy  = hy;
+      existing.angle     = angle;
+      existing.boosting  = boosting;
+      existing.radius    = radius;
+      existing.fullLength= fullLen;
+      existing.alive     = true;
+      existing.skin      = skin;
+    } else {
+      // New snake — init with segments at head position
+      const meta = snakeMeta.get(id) || {};
+      const segs = [];
+      for (let j = 0; j < Math.max(8, fullLen); j++) segs.push({ x: hx, y: hy });
+      snakes.set(id, {
+        id, alive: true, angle, boosting, radius, fullLength: fullLen,
+        skin, segments: segs,
+        name: meta.name || '...',
+        serverHx: hx, serverHy: hy,
+      });
+    }
+
+    if (isPlayer && id !== playerId) playerId = id;
+  }
+
+  // Remove snakes no longer nearby
+  for (const [id] of snakes) {
+    if (!activeIds.has(id)) snakes.delete(id);
+  }
+
+  // Parse foods
+  const newFoodIds = new Set();
+  for (let i = 0; i < foodCount; i++) {
+    const id    = view.getUint16(off, true);                           off += 2;
+    const fx    = view.getInt16(off, true);                            off += 2;
+    const fy    = view.getInt16(off, true);                            off += 2;
+    const cIdx  = view.getUint8(off++);
+    const r     = view.getUint8(off++);
+    newFoodIds.add(id);
+    if (!foods.has(id)) foods.set(id, { id, x: fx, y: fy, color: FOOD_COLORS_CLIENT[cIdx % FOOD_COLORS_CLIENT.length], r });
+  }
+  // Remove stale nearby foods
+  const player = snakes.get(playerId);
+  if (player && player.segments[0]) {
+    const ph = player.segments[0];
+    for (const [id, f] of foods) {
+      const d2 = (f.x - ph.x) ** 2 + (f.y - ph.y) ** 2;
+      if (d2 < 800 * 800 && !newFoodIds.has(id)) foods.delete(id);
+    }
+  }
+
+  // Parse orbs
+  orbs.clear();
+  for (let i = 0; i < orbCount; i++) {
+    const id    = view.getUint16(off, true);                           off += 2;
+    const ox    = view.getInt16(off, true);                            off += 2;
+    const oy    = view.getInt16(off, true);                            off += 2;
+    const cIdx  = view.getUint8(off++);
+    const r     = view.getUint8(off++);
+    orbs.set(id, { id, x: ox, y: oy, color: FOOD_COLORS_CLIENT[cIdx % FOOD_COLORS_CLIENT.length], r });
+  }
+
+  // Parse score tail (JSON suffix after binary block)
+  try {
+    const tail = new TextDecoder().decode(new Uint8Array(buf, off));
+    if (tail.startsWith(',')) {
+      const sc = JSON.parse(tail.slice(1));
+      if (sc.sc !== undefined) playerScore = sc.sc;
+      const ps = snakes.get(playerId);
+      if (ps && sc.ln) ps.fullLength = sc.ln;
+    }
+  } catch(_) {}
+}
+
+// ─── Client-side body reconstruction (runs every frame, like slither.io) ────
+// Each segment chases the one ahead of it — no server bandwidth needed for body
+const SEGMENT_SPACING = 2.2; // matches server BASE_SPEED
+function reconstructBodies() {
+  for (const s of snakes.values()) {
+    if (!s.alive || !s.serverHx) continue;
+
+    // Move head toward server position
+    const head = s.segments[0];
+    if (head) {
+      head.x += (s.serverHx - head.x) * 0.35;
+      head.y += (s.serverHy - head.y) * 0.35;
+    }
+
+    // Each subsequent segment follows the one ahead
+    const targetLen = s.fullLength || s.segments.length;
+    while (s.segments.length < targetLen) s.segments.push({ ...s.segments[s.segments.length - 1] });
+    while (s.segments.length > targetLen + 2) s.segments.pop();
+
+    for (let i = 1; i < s.segments.length; i++) {
+      const leader = s.segments[i - 1];
+      const seg    = s.segments[i];
+      const dx = leader.x - seg.x;
+      const dy = leader.y - seg.y;
+      const d  = Math.sqrt(dx * dx + dy * dy);
+      if (d > SEGMENT_SPACING) {
+        const ratio = (d - SEGMENT_SPACING) / d;
+        seg.x += dx * ratio;
+        seg.y += dy * ratio;
+      }
+    }
+  }
+}
+
+// Also handle leaderboard JSON messages
+function handleLeaderboard(data) {
+  minimapData = data;
+  updateLeaderboard(data);
+  // Update snake names from leaderboard
+  for (const e of data) {
+    snakeMeta.set(e.id, { name: e.name });
+    const s = snakes.get(e.id);
+    if (s) s.name = e.name;
+  }
+}
+
 // ─── Input sending ─────────────────────────────────────────────────────────
 function sendInput() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -473,6 +652,7 @@ function gameLoop(ts) {
   applyKeyboardSteering();
   updateCursor(mouse.x, mouse.y);
   sendInput();
+  reconstructBodies(); // client-side body simulation — slither.io style
   if (ts - lastPing > 2000) { lastPing = ts; /* sendPing(); */ }
 
   // No client-side prediction — server runs at 60fps so we just use server positions
