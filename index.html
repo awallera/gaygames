@@ -14,7 +14,7 @@
   --cyan: #4CC9F0; --green: #06D6A0; --yellow: #FFD166;
   --orange: #FF8C42; --red: #FF4B6E; --bg: #08000F;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
+* { margin:0; padding:0; box-sizing:border-box; cursor:none !important; }
 body { background:var(--bg); overflow:hidden; font-family:'Nunito',sans-serif; color:white; width:100vw; height:100vh; cursor:none;
   /* Prevent iOS rubber-band scrolling */
   position:fixed; overscroll-behavior:none; -webkit-overflow-scrolling:touch; }
@@ -763,6 +763,23 @@ canvas.addEventListener('mousemove', e => {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
   updateCursor(e.clientX, e.clientY);
+});
+// Show custom cursor everywhere, not just during gameplay
+document.addEventListener('mousemove', e => {
+  cursorEl.style.left = e.clientX + 'px';
+  cursorEl.style.top = e.clientY + 'px';
+  if (!cursorVisible) { cursorEl.style.display = 'block'; cursorVisible = true; }
+  if (!running) {
+    // Simple crosshair on start/dead screens
+    cursorEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" style="display:block;margin:-12px 0 0 -12px">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="rgba(247,37,133,0.6)" stroke-width="2"/>
+      <circle cx="12" cy="12" r="2.5" fill="rgba(247,37,133,0.8)"/>
+      <line x1="12" y1="2" x2="12" y2="6" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <line x1="12" y1="18" x2="12" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <line x1="2" y1="12" x2="6" y2="12" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <line x1="18" y1="12" x2="22" y2="12" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+    </svg>`;
+  }
 });
 canvas.addEventListener('mousedown', () => boosting = true);
 canvas.addEventListener('mouseup', () => boosting = false);
